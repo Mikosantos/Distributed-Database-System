@@ -6,6 +6,9 @@ import bodyParser from 'body-parser';
 const app = express();
 dotenv.config();
 
+app.use(express.json());
+app.use(express.urlencoded({extended:false}));
+
 app.set('view engine', 'ejs');
 app.set('access', 0);
 app.set('config', [true, true, true]);

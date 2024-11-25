@@ -9,20 +9,16 @@ router.get("/", (req, res) => {
 });
 
 router.get("/create", (req, res) => {
-    /* const db_selected = req.app.get('access'); */
     res.render('create', {
         error: null,
         cssFile: 'create.css'
-        /* db_selected: db_selected */
     });
 });
 
 router.get("/update", (req, res) => {
-    /* const db_selected = req.app.get('access'); */
     res.render('update', {
         error: null,
         cssFile: 'update.css'
-        /* db_selected: db_selected */
     });
 })
 
