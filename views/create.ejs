@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Game Management</title>
+    <link rel="stylesheet" href="/styles/create.css">
+</head>
+<body>
+    <% if (error != null) {%> 
+        <div class="error <%if (error!=null) {%> error-show <%}%>">
+            <%if (error.status == 'error') {%> 
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24">
+                    <path fill="#8f0000" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22" />
+                </svg>
+            <% } else {%>
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24">
+                    <path fill="#008f4c" fill-rule="evenodd" d="M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18m-.232-5.36l5-6l-1.536-1.28l-4.3 5.159l-2.225-2.226l-1.414 1.414l3 3l.774.774z" clip-rule="evenodd" />
+                </svg>
+            <% } %>
+            <p><%=error.message%></p>
+        </div>
+   <% }%> 
+    <div class="return">
+        <a href="/">
+            <svg width="30px" height="30px" viewBox="-112.64 -112.64 1249.28 1249.28" xmlns="http://www.w3.org/2000/svg" fill="white">
+                <path d="M222.927 580.115l301.354 328.512c24.354 28.708 20.825 71.724-7.883 96.078s-71.724 20.825-96.078-7.883L19.576 559.963a67.846 67.846 0 01-13.784-20.022 68.03 68.03 0 01-5.977-29.488l.001-.063a68.343 68.343 0 017.265-29.134 68.28 68.28 0 011.384-2.6 67.59 67.59 0 0110.102-13.687L429.966 21.113c25.592-27.611 68.721-29.247 96.331-3.656s29.247 68.721 3.656 96.331L224.088 443.784h730.46c37.647 0 68.166 30.519 68.166 68.166s-30.519 68.166-68.166 68.166H222.927z"/>
+            </svg>
+        </a>
+    </div>
+    <h1 class="title">Add Game</h1>
+    <form action="/create" method = "post" name = "addGameForm"> 
+        <h1 class="subtitle a">Game Information</h1>
+        
+        <div class="gameTitle">
+            <label class="label" for="gameTitle">Game Name: </label>
+            <input class="inputString" name="gameTitle">
+        </div>
+
+        <div class="releasedDate">
+            <label class="label" for="releasedDate">Released Year: </label>
+            <input class="inputString" name="releasedDate">
+        </div>
+
+        <div class="price">
+            <label class="label" for="price">Price: </label>
+            <input class="inputString" name="price">
+        </div>
+        <div>
+            <h1 class="subtitle a">Estimated owners (in range)</h1>
+            <div>
+                <select class="inputString" name="ownerRange">
+                    <option value="0-0">0 - 0</option>
+                    <option value="0-20000">0 - 20,000</option>
+                    <option value="20000-50000">20,000 - 50,000</option>
+                    <option value="50000-100000">50,000 - 100,000</option>
+                    <option value="100000-200000">100,000 - 200,000</option>
+                    <option value="200000-500000">200,000 - 500,000</option>
+                    <option value="500000-1000000">500,000 - 1,000,000</option>
+                    <option value="1000000-2000000">1,000,000 - 2,000,000</option>
+                    <option value="2000000-5000000">2,000,000 - 5,000,000</option>
+                    <option value="5000000-10000000">5,000,000 - 10,000,000</option>
+                    <option value="10000000-20000000">10,000,000 - 20,000,000</option>
+                    <option value="20000000-50000000">20,000,000 - 50,000,000</option>
+                    <option value="50000000-100000000">50,000,000 - 100,000,000</option>
+                    <option value="100000000-200000000">100,000,000 - 200,000,000</option>
+                </select>
+            </div>
+        </div>
+        
+        <div>
+            <h1 class="subtitle a">Reviews</h1>
+            <div class="posReview">
+                <label class="label" for="posReview">Postive Review: </label>
+                <input class="inputString" name="posReview">
+            </div>
+            <div class="negReview">
+                <label class="label" for="negReview">Negative Review: </label>
+                <input class="inputString" name="negReview">
+            </div>
+        </div>
+        
+        <!-- SUBMIT BUTTON -->
+        <button type="submit" name="button">Create Game Record</button>
+    </form>
+
+</body>
+
+</html>

@@ -1,0 +1,72 @@
+:root{
+    --primary-color: #436850;
+    --secondary-color: #ADBC9F;
+    --light: #FBFADA   ;
+    --def-font: 'Franklin Gothic Medium';
+    --darkgreen: #051f20;
+    --btn-shadow: #718794;
+    --blue: ##051f20;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: var(--secondary-color);
+    margin-bottom: 18px;
+}
+
+body {
+    padding: 10px;
+    background-color: var(--primary-color);
+    font-family: var(--def-font);
+    color: var(--secondary-color);
+}
+
+.container{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    justify-content: space-around;
+    align-content: space-around;
+    height: calc(100vh - 100px);
+    grid-gap: 10px;
+    margin: 10px;
+}
+
+.container > div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.subtitle{
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.title{
+    margin-top: 20px;
+    text-align: center;
+    color: var(--light);
+}
+
+.create g:hover, .read g:hover,  .update g:hover{
+    transition: 0.3s all;
+    stroke: var(--darkgreen);
+}
+
+.delete path:hover{
+    transition: 0.3s all;
+    fill: var(--darkgreen);
+}
+
+.config svg:hover {
+    transition: 0.3s all;
+    fill: var(--darkgreen);
+}
+
