@@ -29,27 +29,27 @@
         </a>
     </div>
     <h1 class="title">Add Game</h1>
-    <form action="/create" method = "post" name = "addGameForm"> 
+    <form action="/create" method="post" name="addGameForm">
         <h1 class="subtitle a">Game Information</h1>
-        
+    
         <div class="gameTitle">
             <label class="label" for="gameTitle">Game Name: </label>
-            <input class="inputString" name="gameTitle">
+            <input class="inputString" name="gameTitle" required>
         </div>
-
+    
         <div class="releasedDate">
             <label class="label" for="releasedDate">Released Year: </label>
-            <input class="inputString" name="releasedDate">
+            <input type="number" class="inputString" name="releasedDate" required>
         </div>
-
+    
         <div class="price">
             <label class="label" for="price">Price: </label>
-            <input class="inputString" name="price">
+            <input type="number" step="0.01" class="inputString" name="price" required>
         </div>
         <div>
             <h1 class="subtitle a">Estimated owners (in range)</h1>
             <div>
-                <select class="inputString" name="ownerRange">
+                <select class="inputString" name="ownerRange" required>
                     <option value="0-0">0 - 0</option>
                     <option value="0-20000">0 - 20,000</option>
                     <option value="20000-50000">20,000 - 50,000</option>
@@ -67,22 +67,23 @@
                 </select>
             </div>
         </div>
-        
+    
         <div>
             <h1 class="subtitle a">Reviews</h1>
             <div class="posReview">
-                <label class="label" for="posReview">Postive Review: </label>
-                <input class="inputString" name="posReview">
+                <label class="label" for="posReview">Positive Review: </label>
+                <input type="number" class="inputString" name="posReview" required>
             </div>
             <div class="negReview">
                 <label class="label" for="negReview">Negative Review: </label>
-                <input class="inputString" name="negReview">
+                <input type="number" class="inputString" name="negReview" required>
             </div>
         </div>
-        
+    
         <!-- SUBMIT BUTTON -->
         <button type="submit" name="button">Create Game Record</button>
     </form>
+    
 
 </body>
 

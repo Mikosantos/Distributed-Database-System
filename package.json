@@ -1,19 +1,24 @@
 {
-  "name": "mco2",
+  "name": "stadvdb-mco2-stream-games",
   "version": "1.0.0",
+  "description": "npm init -y\\\r npm i express dotenv body-parser",
   "main": "index.js",
-  "type": "module",
+  "type":"module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "babel": "^6.23.0",
     "body-parser": "^1.20.3",
+    "cjs": "^0.0.11",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
-    "nodemon": "^3.1.7"
-  },
-  "description": ""
+    "jest": "^29.7.0",
+    "mysql2": "^3.11.4",
+    "puppeteer": "^23.9.0",
+    "puppeteer-core": "^23.9.0"
+  }
 }

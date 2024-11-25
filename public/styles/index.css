@@ -101,7 +101,7 @@ body {
     color: var(--light);
 }
 
-.create g:hover, .search g:hover, .update svg:hover{
+.create g:hover, .search g:hover, .update g:hover{
     transition: 0.3s all;
     stroke: var(--darkgreen);
 }

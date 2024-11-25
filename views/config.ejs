@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Game Management</title>
+    <link rel="stylesheet" href="/styles/config.css">
+</head>
+<body>
+    <% if (error != null) {%> 
+        <div class="error <%if (error!=null) {%> error-show <%}%>">
+            <%if (error.status == 'error') {%> 
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24">
+                    <path fill="#8f0000" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22" />
+                </svg>
+            <% } else {%>
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24">
+                    <path fill="#008f4c" fill-rule="evenodd" d="M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18m-.232-5.36l5-6l-1.536-1.28l-4.3 5.159l-2.225-2.226l-1.414 1.414l3 3l.774.774z" clip-rule="evenodd" />
+                </svg>
+            <% } %>
+            <p><%=error.message%></p>
+        </div>
+   <% }%> 
+    <div class="return">
+        <a href="/">
+            <svg width="30px" height="30px" viewBox="-112.64 -112.64 1249.28 1249.28" xmlns="http://www.w3.org/2000/svg" fill="white">
+                <path d="M222.927 580.115l301.354 328.512c24.354 28.708 20.825 71.724-7.883 96.078s-71.724 20.825-96.078-7.883L19.576 559.963a67.846 67.846 0 01-13.784-20.022 68.03 68.03 0 01-5.977-29.488l.001-.063a68.343 68.343 0 017.265-29.134 68.28 68.28 0 011.384-2.6 67.59 67.59 0 0110.102-13.687L429.966 21.113c25.592-27.611 68.721-29.247 96.331-3.656s29.247 68.721 3.656 96.331L224.088 443.784h730.46c37.647 0 68.166 30.519 68.166 68.166s-30.519 68.166-68.166 68.166H222.927z"/>
+            </svg>
+        </a>
+    </div>
+    <!-- HIDDEN FORM -->
+    <form action="/config" method="post">
+        <input type="text" name="db_selected" id="db_selected" value="<%=db_selected%>">
+        <input type="text" name="config0" id="config0" value="<%=config[0]%>">
+        <input type="text" name="config1" id="config1" value="<%=config[1]%>">
+        <input type="text" name="config2" id="config2" value="<%=config[2]%>">
+        <button type="submit" name="button" id="formSubmit">Select Node</button>
+    </form>
+
+    <div class="main">
+        <h1 class="title">Node Selection</h1>
+
+        <div class="node-selection">
+            <section id="node-1">
+                <h1>Node 1</h1>
+                <svg class="db-icon" width="200px" height="200px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 10C16.4183 10 20 8.20914 20 6C20 3.79086 16.4183 2 12 2C7.58172 2 4 3.79086 4 6C4 8.20914 7.58172 10 12 10Z" fill="<%if (db_selected == 0) {%> #f2b236 <%} else {%> #ffff <%}%>"/>
+                    <path opacity="0.5" d="M4 12V18C4 20.2091 7.58172 22 12 22C16.4183 22 20 20.2091 20 18V12C20 14.2091 16.4183 16 12 16C7.58172 16 4 14.2091 4 12Z" fill="<%if (db_selected == 0) {%> #f2b236 <%} else {%> #718794 <%}%>"/>
+                    <path opacity="0.7" d="M4 6V12C4 14.2091 7.58172 16 12 16C16.4183 16 20 14.2091 20 12V6C20 8.20914 16.4183 10 12 10C7.58172 10 4 8.20914 4 6Z" fill="<%if (db_selected == 0) {%> #f2b236 <%} else {%> #A8BEC9 <%}%>"/>
+                </svg>
+                
+                <p>Center Node</p>
+                <% if (db_selected == 0) { %>
+                    <p><em>SELECTED</em></p>
+                <%}%>
+            </section>
+
+            <section id="node-2">
+                <h1>Node 2</h1>
+                <svg class="db-icon" width="200px" height="200px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 10C16.4183 10 20 8.20914 20 6C20 3.79086 16.4183 2 12 2C7.58172 2 4 3.79086 4 6C4 8.20914 7.58172 10 12 10Z" fill="<%if (db_selected == 1) {%> #f2b236 <%} else {%> #ffff <%}%>"/>
+                    <path opacity="0.5" d="M4 12V18C4 20.2091 7.58172 22 12 22C16.4183 22 20 20.2091 20 18V12C20 14.2091 16.4183 16 12 16C7.58172 16 4 14.2091 4 12Z" fill="<%if (db_selected == 1) {%> #f2b236 <%} else {%> #718794 <%}%>"/>
+                    <path opacity="0.7" d="M4 6V12C4 14.2091 7.58172 16 12 16C16.4183 16 20 14.2091 20 12V6C20 8.20914 16.4183 10 12 10C7.58172 10 4 8.20914 4 6Z" fill="<%if (db_selected == 1) {%> #f2b236 <%} else {%> #A8BEC9 <%}%>"/>
+                </svg>
+                <p>Games Released  ≥ 2010</p>
+                <% if (db_selected == 1) { %>
+                    <p class="selected">SELECTED</p>
+                <%}%>
+            </section>
+
+            <section id="node-3">
+                <h1>Node 3</h1>
+                <svg class="db-icon" width="200px" height="200px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 10C16.4183 10 20 8.20914 20 6C20 3.79086 16.4183 2 12 2C7.58172 2 4 3.79086 4 6C4 8.20914 7.58172 10 12 10Z" fill="<%if (db_selected == 2) {%> #f2b236 <%} else {%> #ffff <%}%>"/>
+                    <path opacity="0.5" d="M4 12V18C4 20.2091 7.58172 22 12 22C16.4183 22 20 20.2091 20 18V12C20 14.2091 16.4183 16 12 16C7.58172 16 4 14.2091 4 12Z" fill="<%if (db_selected == 2) {%> #f2b236 <%} else {%> #718794 <%}%>"/>
+                    <path opacity="0.7" d="M4 6V12C4 14.2091 7.58172 16 12 16C16.4183 16 20 14.2091 20 12V6C20 8.20914 16.4183 10 12 10C7.58172 10 4 8.20914 4 6Z" fill="<%if (db_selected == 2) {%> #f2b236 <%} else {%> #A8BEC9 <%}%>"/>
+                </svg>
+                <p>Games Released < 2010</p>
+                <% if (db_selected == 2) { %>
+                    <p class="selected">SELECTED</p>
+                <%}%>
+            </section>
+        </div>
+
+        <div class="node-on">
+            <div class="btn <% if (config[0] == true) {%> on-state <%} else {%> off-state <%}%>" id="btn-1">
+                <div class="node-button">
+                    <h1>l</h1>
+                    <h1 class="o">O</h1>
+                </div>
+                <div class="btn-circle"></div>
+            </div>
+            
+            <div class="btn <% if (config[1] == true) {%> on-state <%} else {%> off-state <%}%>" id="btn-2">
+                <div class="node-button">
+                    <h1>l</h1>
+                    <h1 class="o">O</h1>
+                </div>
+                <div class="btn-circle"></div>
+            </div>
+
+            <div class="btn <% if (config[2] == true) {%> on-state <%} else {%> off-state <%}%>" id="btn-3">
+                <div class="node-button">
+                    <h1>l</h1>
+                    <h1 class="o">O</h1>
+                </div>
+                <div class="btn-circle"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    const current_node = "<%=db_selected%>";
+    const submit = document.getElementById("formSubmit");
+    const dbSelection = document.getElementById("db_selected");
+    const config = [
+        document.getElementById("config0"), 
+        document.getElementById("config1"), 
+        document.getElementById("config2")
+    ];
+    const selection = document.querySelectorAll('.db-icon');
+    const nodeButtons = document.querySelectorAll('.btn');
+    selection.forEach(db => {
+        db.addEventListener('click', (e) => {
+            selectedNode = db.parentElement.id.slice(-1) - 1;
+            dbSelection.value = selectedNode;
+            if (current_node != selectedNode)
+                submit.click();
+        });
+    });
+
+    nodeButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = btn.id.slice(-1) - 1;
+            const selected = config[index];
+            if (selected.value == "true"){
+                selected.value = "false";
+            } else {
+                selected.value = "true";
+            }
+            submit.click();
+        });
+    });
+</script>
+</html>
