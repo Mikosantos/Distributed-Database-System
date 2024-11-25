@@ -1,2 +1,2 @@
 npm init -y\
-npm i express dotenv body-parser
+npm install babel body-parser cjs dotenv ejs express jest mysql2 puppeteer puppeteer-core
