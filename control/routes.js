@@ -1,6 +1,8 @@
+import { config } from "dotenv";
 import { Router } from "express";
 
 const router = Router();
+import { connectToDB } from './dbmanager.js';
 
 router.get("/config", (req, res) => {
     const config = req.app.get('config');
@@ -43,16 +45,46 @@ router.post("/config", (req, res) => {
 
     req.app.set('config', new_config);
     req.app.set('access', db_selected);
+
+    const connection = connectToDB(db_selected);
+
+    // SAMPLE QUERY
+    /*
+    connection.query("SELECT MIN(Release_date) AS Min_Release_Date, MAX(Release_date) AS Max_Release_Date FROM GAME_TABLE", (err, results) => {
+        connection.end();
+
+        if (err) {
+            console.error("Failed query execution:", err);
+            return res.render('config', {
+                error: { status: "error", message: "Query failed."},
+                db_selected,
+                config: new_config
+            });
+        }
+
+        console.log("Query results: ", results);
+
+        res.render("config", {
+            error: { status: 'ack', message: "Successful query execution!"}, 
+            db_selected,
+            config: new_config,
+            data: results
+        });
+    });
+    */
+
+
     /*
     console.log("Updated state:");
     console.log("New config:", new_config);
     console.log("Node selected:", parseInt(db_selected) + 1);
     */
+
     if (db_selected == prev_db_selected) {
         const message = changed >= 0 
             ? "Node " + (changed + 1) + (new_config[changed] ? " ON" : " OFF") + "!"
             : "No changes detected.";
-        /* console.log("Response message:", message);*/
+        // console.log("Response message:", message);
         res.render('config', {
             error: { status: 'ack', message },
             db_selected: db_selected,
@@ -60,7 +92,7 @@ router.post("/config", (req, res) => {
         });
     } else {
         const message = "Node " + (parseInt(db_selected) + 1) + " selected!";
-        /*  console.log("Response message:", message); */
+        // console.log("Response message:", message);
         res.render('config', {
             error: { status: 'ack', message },
             db_selected: db_selected,
