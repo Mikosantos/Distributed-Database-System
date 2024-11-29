@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Appointment Management</title>
     <link rel="stylesheet" href="/styles/search.css">
+    <script src="/js/search.js" type="text/javascript"></script>
 
 </head>
 <body>
@@ -30,49 +31,23 @@
         </a>
     </div>
     <h1 class="title">Search Game</h1>
-    <form action="/search" method="post">
+
+    <form id="searchForm">
         <div class="AppID">
             <label for="AppID"><h1 class="subtitle">Game Title to Search: </h1></label>
-            <input class="inputString" id="read-input" name="AppID" type="text">
+            <input class="inputString" id="read-input" name="AppID" type="text" placeholder="Game Name">
         </div>
         <button type="submit" name="button" id="read-button">Search</button>
     </form>
+
     <hr>
     <section class="result">
         <h1 class="subtitle">Search Result:</h1>
-        <div>
-            <% if (results != null) { %>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fields</th><th>Data</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>AppID</td>         <td><%=results.AppID%></td>
-                        </tr>
-                        <tr>
-                            <td>Released Date</td>        <td><%=results.Released_date%></td>
-                        </tr>
-                        <tr>
-                            <td>Price</td>     <td><%=results.Price%></td>
-                        </tr>
-                        <tr>
-                            <td>Estimated Owners</td>      <td><%=results.Estimated_owners%></td>
-                        </tr>
-                        <tr>
-                            <td>Positive Review</td>      <td><%=results.positive%></td>
-                        </tr>
-                        <tr>
-                            <td>Negative Review</td>        <td><%=results.negative%></td>
-                        </tr>
-                    </tbody>
-                </table>
-            <%} else if (AppID != null){%>
-                <p>No results with AppID "<%=AppID%>"</p>
-            <%}%>
+
+        <div id="results-container">
+            <!-- results here -->
         </div>
+          
     </section>
 </body>
 </html>
