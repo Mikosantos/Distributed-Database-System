@@ -160,6 +160,7 @@ router.post('/create', async (req, res) => {
     }
 });
 */
+
 router.get("/update", (req, res) => {
     res.render('update', {
         error: null,
@@ -176,7 +177,6 @@ router.get("/search", (req, res) => {
     });
 });
 
-
 router.get("/delete", (req, res) => {
     res.render('delete',{
         error: null,
@@ -184,5 +184,39 @@ router.get("/delete", (req, res) => {
     });
 })
 
+// ACTUAL-SEARCH
+router.get("/search-game/:search_name", async (req, res) => {
+    const searchName = req.params.search_name;
+    console.log(searchName);
+    const searchWords = searchName.split(' ').filter(word => word.trim() !== '');
+
+    try {
+        // Construct the SQL query
+        const dbSelected = req.app.get('access'); 
+        const connection = connectToDB(dbSelected);  // Use the selected DB (0, 1, or 2)
+
+        const conditions = searchWords.map(word => `Name LIKE ?`).join(' OR ');
+        const values = searchWords.map(word => `%${word}%`);
+
+        const query = `SELECT * FROM GAME_TABLE WHERE ${conditions}`;
+
+         // Execute the query
+         connection.query(query, values, (error, results) => {
+            if (error) {
+                console.error('Error searching games:', error);
+                res.status(500).json({ success: false, message: 'Error searching games', error });
+            } else {
+                res.json({ success: true, results: results });
+            }
+            //console.log(results); //debugging
+            connection.end(); // Close the connection after query execution
+        });
+
+        
+    } catch (error) {
+        console.error('Error searching games:', error);
+        res.status(500).json({ success: false, message: 'Error searching games', error });
+    }
+});
 
 export default router;
