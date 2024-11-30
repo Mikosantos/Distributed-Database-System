@@ -121,26 +121,42 @@
     ];
     const selection = document.querySelectorAll('.db-icon');
     const nodeButtons = document.querySelectorAll('.btn');
+
+    // Add event listeners to database icons
     selection.forEach(db => {
         db.addEventListener('click', (e) => {
-            selectedNode = db.parentElement.id.slice(-1) - 1;
+            const selectedNode = db.parentElement.id.slice(-1) - 1; // Get index from ID
+            
+            // Check if the selected node is active
+            if (config[selectedNode].value === "false") {
+                alert("Cannot select this node because it is turned off.");
+                return;
+            }
+            
+            // Update the selection and submit the form if necessary
             dbSelection.value = selectedNode;
-            if (current_node != selectedNode)
+            if (current_node != selectedNode) {
                 submit.click();
+            }
         });
     });
 
+    // Add event listeners to node buttons
     nodeButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const index = btn.id.slice(-1) - 1;
+            const index = btn.id.slice(-1) - 1; // Get index from ID
             const selected = config[index];
-            if (selected.value == "true"){
+            
+            // Toggle the state of the node
+            if (selected.value === "true") {
                 selected.value = "false";
             } else {
                 selected.value = "true";
             }
+            
             submit.click();
         });
     });
 </script>
+
 </html>
