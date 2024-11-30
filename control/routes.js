@@ -167,10 +167,10 @@ router.post('/create', async (req, res) => {
     const config = req.app.get('config');
 
     // All write operations are done only in node 0 (Master node)
-    const db_selected = 1
+    const db_selected = 0;
 
-    console.log("Received game details:", req.body);
-    console.log("Determined database:", db_selected);
+    // console.log("Received game details:", req.body);
+    // console.log("Determined database:", db_selected);
 
     let gameId;
 
@@ -178,8 +178,8 @@ router.post('/create', async (req, res) => {
         let queryFunc = query(db_selected);
         
         // Fetch the maximum AppId from the database
-        const maxIdResult = await queryFunc("SELECT MAX(AppId) AS maxAppId FROM Game_table", [], 'READ');
-        const maxAppId = maxIdResult[0]?.maxAppId || 0; // Default to 0 if no entries are present
+        const maxIdResult = await queryFunc("SELECT MAX(AppId) AS maxAppId FROM GAME_TABLE", [], 'READ');
+        const maxAppId = maxIdResult[0]?.maxAppId || 0; // Default 0 if no entries are present
         
         console.log("Current max AppId:", maxAppId);
 
@@ -187,19 +187,14 @@ router.post('/create', async (req, res) => {
 
         console.log("Generated AppId:", gameId);
 
-        req.body.AppID = gameId; // Add generated AppId to the request body
+        req.body.AppID = gameId; // update appId
 
-        const sql_script = "INSERT INTO Game_table VALUES (?, ?, ?, ?, ?, ?, ?)";
-        const values = [req.body.AppID, req.body.gameTitle, req.body.ownerRange, req.body.price, 
-            req.body.posReview, req.body.negReview, req.body.releasedDate];
-        const table = "GAME_TABLE";
+        const sql_script = "INSERT INTO GAME_TABLE (AppID, Name, Release_date, Price, Estimated_owners, positive, negative) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        const values = [req.body.AppID, req.body.gameTitle, req.body.releasedDate, req.body.price, req.body.ownerRange, 
+            req.body.posReview, req.body.negReview];
         const mode = "WRITE";
 
-        // Insert the game data into the database
-        await queryFunc("INSERT INTO Game_table SET ?;", req.body, 'WRITE');
-        console.log("Game successfully added with ID:", gameId);
-
-        const result = await queryFunc(db_selected)(sql_script, values, table, mode);
+        await queryFunc(sql_script, values, 'WRITE');
         console.log("Game successfully added with ID:", gameId);
 
         res.render('create', {

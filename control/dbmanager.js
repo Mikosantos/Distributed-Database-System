@@ -34,12 +34,16 @@ export const query = (db_selected) => {
 
     return async(query_script, values, mode) => {
         try {
+            await dbConnection.promise().query("START TRANSACTION");
+
             // Lock tables
             await dbConnection.promise().query("LOCK TABLES GAME_TABLE " + mode);
 
             // Execute query
             const [rows] = await dbConnection.promise().query(query_script, values);
 
+            await dbConnection.promise().query("COMMIT");
+            
             // Unlock tables
             await dbConnection.promise().query("UNLOCK TABLES");
 
