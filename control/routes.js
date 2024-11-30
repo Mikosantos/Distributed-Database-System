@@ -217,7 +217,44 @@ router.get("/update", (req, res) => {
         error: null,
         cssFile: 'update.css'
     });
-})
+});
+
+router.post('/update', async (req, res) => {
+    // All write operations are done only in node 0 (Master node)
+    const db_selected = 0;
+
+    // console.log("Received game details:", req.body);
+    // console.log("Determined database:", db_selected);
+
+    try {
+        let queryFunc = query(db_selected);
+        
+        const gameId = req.body.appid;
+        console.log("Entered AppId:", gameId);
+
+        const sql_script = "UPDATE GAME_TABLE SET Name = ?, Release_date = ?, Price = ?, Estimated_owners = ?, positive = ?, negative = ? WHERE AppID = ?";
+        const values = [req.body.gameTitle, req.body.releasedDate, req.body.price, req.body.ownerRange, 
+            req.body.posReview, req.body.negReview, gameId];
+
+        await queryFunc(sql_script, values, 'WRITE');
+        console.log("Game with ID: " + gameId + " successfully edited!", gameId);
+
+        res.render('update', {
+            error: null,
+            success: { status: 'ack', message: "Game edited!" },
+            db_selected: db_selected
+        });
+        
+    } catch (e) {
+        console.error('Transaction failed. Rolling back...', e);
+        res.render('update', {
+            error: { status: 'error', message: "Server error has occurred!" },
+            db_selected: db_selected
+        });
+    }
+});
+
+
 
 router.get("/search", (req, res) => {
     res.render('search', {
