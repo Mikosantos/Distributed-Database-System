@@ -234,7 +234,6 @@ router.get("/delete", (req, res) => {
 })
 
 // ACTUAL-SEARCH
-// TODO: Ayusin ko ulit huhu
 router.get("/search-game/:search_name", async (req, res) => {
     const searchName = req.params.search_name;
     console.log(searchName);
