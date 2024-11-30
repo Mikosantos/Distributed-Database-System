@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import { Router } from "express";
 
 const router = Router();
-import { connectToDB, query} from './dbmanager.js';
+import { db1, db2, db3, query, connectDB } from './dbmanager.js';
 
 router.get("/config", (req, res) => {
     const config = req.app.get('config');
@@ -46,8 +46,6 @@ router.post("/config", async (req, res) => {
     req.app.set('config', new_config);
     req.app.set('access', db_selected);
 
-    const connection = await connectToDB(db_selected);
-
     // SAMPLE QUERY
     /*
     connection.query("SELECT MIN(Release_date) AS Min_Release_Date, MAX(Release_date) AS Max_Release_Date FROM GAME_TABLE", (err, results) => {
@@ -80,6 +78,56 @@ router.post("/config", async (req, res) => {
     console.log("Node selected:", parseInt(db_selected) + 1);
     */
 
+    // Map db_selected to the correct DB connection
+    let connection;
+    switch (db_selected) {
+        case '0':
+            connection = db1;
+            break;
+        case '1':
+            connection = db2;
+            break;
+        case '2':
+            connection = db3;
+            break;
+        default:
+            return res.render('config', {
+                error: { status: 'error', message: "Invalid database selected." },
+                db_selected: db_selected,
+                config: new_config
+            });
+    }
+
+    try {
+        const queryFunc = query(db_selected); // query func from dbmanager
+        const [results] = await queryFunc("SELECT MIN(Release_date) AS Min_Release_Date, MAX(Release_date) AS Max_Release_Date FROM GAME_TABLE", [], 'READ');
+
+        console.log(results);
+
+        const message = db_selected == prev_db_selected
+            ? (changed >= 0 
+                ? `Node ${changed + 1} ${new_config[changed] ? "ON" : "OFF"}!` 
+                : "No changes detected.")
+            : `Node ${parseInt(db_selected) + 1} selected!`;
+
+        res.render('config', {
+            error: { status: 'ack', message },
+            db_selected: db_selected,
+            config: new_config,
+            data: results
+        });
+
+    } catch (err) {
+        console.error("Error executing query:", err);
+
+        res.render('config', {
+            error: { status: 'error', message: "Database query execution failed!" },
+            db_selected: db_selected,
+            config: new_config
+        });
+    }
+});
+/* 
     if (db_selected == prev_db_selected) {
         const message = changed >= 0 
             ? "Node " + (changed + 1) + (new_config[changed] ? " ON" : " OFF") + "!"
@@ -100,6 +148,7 @@ router.post("/config", async (req, res) => {
         });
     }
 });
+*/
 
 router.get("/", (req, res) => {
     res.render('index',{
@@ -126,7 +175,7 @@ router.post('/create', async (req, res) => {
     let gameId;
 
     try {
-        let queryFunc  = query(db_selected);
+        let queryFunc = query(db_selected);
         
         // Fetch the maximum AppId from the database
         const maxIdResult = await queryFunc("SELECT MAX(AppId) AS maxAppId FROM Game_table", [], 'READ');
@@ -201,7 +250,9 @@ router.get("/search-game/:search_name", async (req, res) => {
         // Construct the SQL query
         const dbSelected = req.app.get('access'); 
         const config = req.app.get('config'); 
-        var connection = connectToDB(dbSelected);  // Use the selected DB (0, 1, or 2)
+        
+        const dbMap = [db1, db2, db3];
+        const connection = dbMap[parseInt(dbSelected)];
 
         //console.log(config);
 
@@ -211,7 +262,7 @@ router.get("/search-game/:search_name", async (req, res) => {
         const query = `SELECT * FROM GAME_TABLE WHERE ${conditions}`;
 
          // Execute the query
-        if(config[0] === true) {
+        if(config[0] === true || config[1] === true || config[2] === true) {
             connection.query(query, values, (error, results) => {
                 if (error) {
                     console.error('Error searching games:', error);
@@ -220,35 +271,8 @@ router.get("/search-game/:search_name", async (req, res) => {
                     res.json({ success: true, results: results });
                 }
                 //console.log(results); //debugging
-                connection.end(); // Close the connection after query execution
-            });
-        } else if (config[1] === true) {
-            connection = connectToDB(1);
-            connection.query(query, values, (error, results) => {
-                if (error) {
-                    console.error('Error searching games:', error);
-                    res.status(500).json({ success: false, message: 'Error searching games', error });
-                } else {
-                    res.json({ success: true, results: results });
-                }
-                //console.log(results); //debugging
-                connection.end(); // Close the connection after query execution
-            });
-        } else if (config[2] === true) {
-            connection = connectToDB(2);
-            connection.query(query, values, (error, results) => {
-                if (error) {
-                    console.error('Error searching games:', error);
-                    res.status(500).json({ success: false, message: 'Error searching games', error });
-                } else {
-                    res.json({ success: true, results: results });
-                }
-                //console.log(results); //debugging
-                connection.end(); // Close the connection after query execution
             });
         }
-
-        
     } catch (error) {
         console.error('Error searching games:', error);
         res.status(500).json({ success: false, message: 'Error searching games', error });

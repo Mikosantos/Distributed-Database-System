@@ -1,0 +1,115 @@
+:root {
+    --primary-color: #436850;
+    --secondary-color: #ADBC9F;
+    --darkgreen: #051f20;
+    --btn-shadow: #718794;
+    --def-font: 'Montserrat', sans-serif;
+    --table-bg: #ffffff;
+    --header-bg: #2a3d34;
+    --header-text: #ffffff;
+    --row-hover: rgba(67, 104, 80, 0.1);
+    --border-color: #718794;
+}
+
+body {
+    padding: 20px;
+    background-color: var(--primary-color);
+    font-family: var(--def-font);
+    color: var(--secondary-color);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.title {
+    margin: 20px 0;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+    text-shadow: 1px 1px 4px var(--darkgreen);
+}
+
+table {
+    margin: 20px auto;
+    width: 90%;
+    max-width: 1200px;
+    border-collapse: collapse;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: var(--table-bg);
+}
+
+th, td {
+    padding: 15px 20px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+th {
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+td {
+    font-size: 1rem;
+    color: var(--darkgreen);
+}
+
+tr:nth-child(even) {
+    background-color: var(--row-hover);
+}
+
+tr:hover {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+tr {
+    border-bottom: 2px solid var(--border-color);
+}
+
+.error {
+    color: black;
+    font-size: 1rem;
+    text-align: center;
+    padding: 20px;
+    position: fixed;
+    top: 50px;
+    background-color: var(--secondary-color);
+    width: 300px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeInOut 5s ease-in-out;
+}
+
+.error * {
+    margin: 0 10px;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    10%, 90% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
