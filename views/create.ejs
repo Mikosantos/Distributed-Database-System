@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stream Game Management</title>
     <link rel="stylesheet" href="/styles/create.css">
+    <script src="/js/search.js" type="text/javascript"></script>
 </head>
 <body>
     <% if (error != null) {%> 
@@ -29,7 +30,7 @@
         </a>
     </div>
     <h1 class="title">Add Game</h1>
-    <form action="/create" method="post" name="addGameForm">
+    <form action="/create" method="post" name="addGameForm" id="addGameForm">
         <h1 class="subtitle a">Game Information</h1>
     
         <div class="gameTitle">
