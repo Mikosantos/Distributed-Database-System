@@ -70,7 +70,7 @@ describe('Step 2', () => {
                 (await browsers[0].pages())[0], // Browser for read operation
                 (await browsers[1].pages())[0]  // Browser for update operation
             ],
-            [   // Vismin node
+            [   
                 (await browsers[2].pages())[0], // Browser for read operation
                 (await browsers[3].pages())[0]  // Browser for update operation
             ]
