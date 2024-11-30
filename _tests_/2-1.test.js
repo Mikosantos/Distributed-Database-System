@@ -65,12 +65,14 @@ describe('Step 2', () => {
         browsers[3].close();
 
     });
-    /*
+    
     test('Case 1, Read-Read Concurrency Test.', async () => {
+        /*
         expect(await query(db_selected)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ')).toEqual(gameBefore2010);
         expect(await query(db_selected)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ')).not.toEqual(gameBefore2010);
         expect(await query(db_selected)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ')).toEqual(gameDuringAfter2010);
         expect(await query(db_selected)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ')).not.toEqual(gameDuringAfter2010);
-    });
-    */
+        */
+        });
+    
 }, 60000);

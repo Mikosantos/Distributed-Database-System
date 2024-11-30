@@ -177,6 +177,7 @@ router.post('/create', async (req, res) => {
     try {
         let queryFunc = query(db_selected);
         
+        
         // Fetch the maximum AppId from the database
         const maxIdResult = await queryFunc("SELECT MAX(AppId) AS maxAppId FROM GAME_TABLE", [], 'READ');
         const maxAppId = maxIdResult[0]?.maxAppId || 0; // Default 0 if no entries are present
@@ -228,7 +229,7 @@ router.post('/update', async (req, res) => {
 
     try {
         let queryFunc = query(db_selected);
-        
+        console.log("db_selected: ", db_selected)
         const gameId = req.body.appid;
         console.log("Entered AppId:", gameId);
 
