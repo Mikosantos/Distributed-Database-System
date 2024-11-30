@@ -1,6 +1,4 @@
 import mysql from 'mysql2';
-import dotenv from 'dotenv';
-dotenv.config();
 
 export const connectDB = (node_port) => mysql.createConnection({
     host: "ccscloud.dlsu.edu.ph",
