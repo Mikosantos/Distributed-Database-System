@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import { Router } from "express";
 
 const router = Router();
-import { connectToDB } from './dbmanager.js';
+import { db1, db2, db3, query, connectDB } from './dbmanager.js';
 
 router.get("/config", (req, res) => {
     const config = req.app.get('config');
@@ -14,7 +14,7 @@ router.get("/config", (req, res) => {
     });
 });
 
-router.post("/config", (req, res) => {
+router.post("/config", async (req, res) => {
     const db_selected = req.body.db_selected;
     const prev_db_selected = req.app.get('access');
     const new_config = [
@@ -45,8 +45,6 @@ router.post("/config", (req, res) => {
 
     req.app.set('config', new_config);
     req.app.set('access', db_selected);
-
-    const connection = connectToDB(db_selected);
 
     // SAMPLE QUERY
     /*
@@ -80,6 +78,56 @@ router.post("/config", (req, res) => {
     console.log("Node selected:", parseInt(db_selected) + 1);
     */
 
+    // Map db_selected to the correct DB connection
+    let connection;
+    switch (db_selected) {
+        case '0':
+            connection = db1;
+            break;
+        case '1':
+            connection = db2;
+            break;
+        case '2':
+            connection = db3;
+            break;
+        default:
+            return res.render('config', {
+                error: { status: 'error', message: "Invalid database selected." },
+                db_selected: db_selected,
+                config: new_config
+            });
+    }
+
+    try {
+        const queryFunc = query(db_selected); // query func from dbmanager
+        const [results] = await queryFunc("SELECT MIN(Release_date) AS Min_Release_Date, MAX(Release_date) AS Max_Release_Date FROM GAME_TABLE", [], 'READ');
+
+        console.log(results);
+
+        const message = db_selected == prev_db_selected
+            ? (changed >= 0 
+                ? `Node ${changed + 1} ${new_config[changed] ? "ON" : "OFF"}!` 
+                : "No changes detected.")
+            : `Node ${parseInt(db_selected) + 1} selected!`;
+
+        res.render('config', {
+            error: { status: 'ack', message },
+            db_selected: db_selected,
+            config: new_config,
+            data: results
+        });
+
+    } catch (err) {
+        console.error("Error executing query:", err);
+
+        res.render('config', {
+            error: { status: 'error', message: "Database query execution failed!" },
+            db_selected: db_selected,
+            config: new_config
+        });
+    }
+});
+/* 
     if (db_selected == prev_db_selected) {
         const message = changed >= 0 
             ? "Node " + (changed + 1) + (new_config[changed] ? " ON" : " OFF") + "!"
@@ -100,6 +148,7 @@ router.post("/config", (req, res) => {
         });
     }
 });
+*/
 
 router.get("/", (req, res) => {
     res.render('index',{
@@ -128,7 +177,7 @@ router.post('/create', async (req, res) => {
     let gameId;
 
     try {
-        let query = queries[db_selected];
+        let queryFunc = query(db_selected);
         
         // Fetch the maximum AppId from the database
         const maxIdResult = await query("SELECT MAX(AppId) AS maxAppId FROM Game_table", [], 'READ');
@@ -185,6 +234,7 @@ router.get("/delete", (req, res) => {
 })
 
 // ACTUAL-SEARCH
+// TODO: Ayusin ko ulit huhu
 router.get("/search-game/:search_name", async (req, res) => {
     const searchName = req.params.search_name;
     console.log(searchName);
@@ -194,7 +244,9 @@ router.get("/search-game/:search_name", async (req, res) => {
         // Construct the SQL query
         const dbSelected = req.app.get('access'); 
         const config = req.app.get('config'); 
-        var connection = connectToDB(dbSelected);  // Use the selected DB (0, 1, or 2)
+        
+        const dbMap = [db1, db2, db3];
+        const connection = dbMap[parseInt(dbSelected)];
 
         //console.log(config);
 
@@ -204,7 +256,7 @@ router.get("/search-game/:search_name", async (req, res) => {
         const query = `SELECT * FROM GAME_TABLE WHERE ${conditions}`;
 
          // Execute the query
-        if(config[0] === true) {
+        if(config[0] === true || config[1] === true || config[2] === true) {
             connection.query(query, values, (error, results) => {
                 if (error) {
                     console.error('Error searching games:', error);
@@ -213,116 +265,12 @@ router.get("/search-game/:search_name", async (req, res) => {
                     res.json({ success: true, results: results });
                 }
                 //console.log(results); //debugging
-                connection.end(); // Close the connection after query execution
-            });
-        } else if (config[1] === true) {
-            connection = connectToDB(1);
-            connection.query(query, values, (error, results) => {
-                if (error) {
-                    console.error('Error searching games:', error);
-                    res.status(500).json({ success: false, message: 'Error searching games', error });
-                } else {
-                    res.json({ success: true, results: results });
-                }
-                //console.log(results); //debugging
-                connection.end(); // Close the connection after query execution
-            });
-        } else if (config[2] === true) {
-            connection = connectToDB(2);
-            connection.query(query, values, (error, results) => {
-                if (error) {
-                    console.error('Error searching games:', error);
-                    res.status(500).json({ success: false, message: 'Error searching games', error });
-                } else {
-                    res.json({ success: true, results: results });
-                }
-                //console.log(results); //debugging
-                connection.end(); // Close the connection after query execution
             });
         }
-
-        
     } catch (error) {
         console.error('Error searching games:', error);
         res.status(500).json({ success: false, message: 'Error searching games', error });
     }
 });
-
-router.get("/report", async (req, res) => {
-    try {
-        const dbSelected = req.app.get('access');
-        const config = req.app.get('config');
-        let connection;
-
-        if (config[0] === true) {
-            connection = connectToDB(dbSelected);
-        } else if (config[1] === true) {
-            connection = connectToDB(1);
-        } else if (config[2] === true) {
-            connection = connectToDB(2);
-        } else {
-            throw new Error("Invalid database configuration");
-        }
-
-        const query1 = `SELECT COUNT(AppID) AS pre2010Count FROM GAME_TABLE WHERE YEAR(Release_date) < 2010`;
-        const query2 = `SELECT COUNT(AppID) AS post2010Count FROM GAME_TABLE WHERE YEAR(Release_date) >= 2010`;
-        const query3  = `SELECT DISTINCT Estimated_owners AS Owner_Range, COUNT(AppID) AS Count FROM GAME_TABLE GROUP BY Estimated_owners ORDER BY Estimated_owners ASC`;
-
-
-        // Execute queries and wait for results
-        const pre2010Results = await new Promise((resolve, reject) => {
-            connection.query(query1, (error, results) => {
-                if (error) return reject(error);
-                resolve(results[0]);
-            });
-        });
-
-        const post2010Results = await new Promise((resolve, reject) => {
-            connection.query(query2, (error, results) => {
-                if (error) return reject(error);
-                resolve(results[0]);
-            });
-        });
-
-        
-        const estimatedOwnersStats = await new Promise((resolve, reject) => {
-            connection.query(query3, (error, results) => {
-                if (error) return reject(error);
-                resolve(results); 
-            });
-        });
-        
-        const sortedEstimatedOwnersStats = estimatedOwnersStats
-            .map(stat => ({
-                range: stat.Owner_Range,
-                count: stat.Count,
-            }))
-            .sort((a, b) => {
-                const startA = parseInt(a.range.split('-')[0], 10);
-                const startB = parseInt(b.range.split('-')[0], 10);
-                return startA - startB; 
-            });
-        
-        const gameReports = [
-            { count: pre2010Results.pre2010Count },
-            { count: post2010Results.post2010Count },
-        ];
-        
-        connection.end();
-        
-        res.render('report', {
-            gameReports: gameReports,
-            estimatedOwnersReport: sortedEstimatedOwnersStats,
-            error: null,
-            cssFile: 'report.css',
-        });
-        
-
-    } catch (error) {
-        console.error('Error generating report:', error);
-        res.status(500).json({ success: false, message: 'Error generating report', error });
-    }
-});
-
 
 export default router;
