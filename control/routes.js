@@ -248,4 +248,81 @@ router.get("/search-game/:search_name", async (req, res) => {
     }
 });
 
+router.get("/report", async (req, res) => {
+    try {
+        const dbSelected = req.app.get('access');
+        const config = req.app.get('config');
+        let connection;
+
+        if (config[0] === true) {
+            connection = connectToDB(dbSelected);
+        } else if (config[1] === true) {
+            connection = connectToDB(1);
+        } else if (config[2] === true) {
+            connection = connectToDB(2);
+        } else {
+            throw new Error("Invalid database configuration");
+        }
+
+        const query1 = `SELECT COUNT(AppID) AS pre2010Count FROM GAME_TABLE WHERE YEAR(Release_date) < 2010`;
+        const query2 = `SELECT COUNT(AppID) AS post2010Count FROM GAME_TABLE WHERE YEAR(Release_date) >= 2010`;
+        const query3  = `SELECT DISTINCT Estimated_owners AS Owner_Range, COUNT(AppID) AS Count FROM GAME_TABLE GROUP BY Estimated_owners ORDER BY Estimated_owners ASC`;
+
+
+        // Execute queries and wait for results
+        const pre2010Results = await new Promise((resolve, reject) => {
+            connection.query(query1, (error, results) => {
+                if (error) return reject(error);
+                resolve(results[0]);
+            });
+        });
+
+        const post2010Results = await new Promise((resolve, reject) => {
+            connection.query(query2, (error, results) => {
+                if (error) return reject(error);
+                resolve(results[0]);
+            });
+        });
+
+        
+        const estimatedOwnersStats = await new Promise((resolve, reject) => {
+            connection.query(query3, (error, results) => {
+                if (error) return reject(error);
+                resolve(results); 
+            });
+        });
+        
+        const sortedEstimatedOwnersStats = estimatedOwnersStats
+            .map(stat => ({
+                range: stat.Owner_Range,
+                count: stat.Count,
+            }))
+            .sort((a, b) => {
+                const startA = parseInt(a.range.split('-')[0], 10);
+                const startB = parseInt(b.range.split('-')[0], 10);
+                return startA - startB; 
+            });
+        
+        const gameReports = [
+            { count: pre2010Results.pre2010Count },
+            { count: post2010Results.post2010Count },
+        ];
+        
+        connection.end();
+        
+        res.render('report', {
+            gameReports: gameReports,
+            estimatedOwnersReport: sortedEstimatedOwnersStats,
+            error: null,
+            cssFile: 'report.css',
+        });
+        
+
+    } catch (error) {
+        console.error('Error generating report:', error);
+        res.status(500).json({ success: false, message: 'Error generating report', error });
+    }
+});
+
+
 export default router;
