@@ -163,13 +163,11 @@ router.get("/create", (req, res) => {
     });
 });
 
-/*
 router.post('/create', async (req, res) => {
     const config = req.app.get('config');
-    const releasedDate = parseInt(req.body.releasedDate, 10); 
 
-    // Determine db_selected based on release date
-    const db_selected = releasedDate <= 2010 ? 1 : 2;
+    // All write operations are done only in node 0 (Master node)
+    const db_selected = 1
 
     console.log("Received game details:", req.body);
     console.log("Determined database:", db_selected);
@@ -180,7 +178,7 @@ router.post('/create', async (req, res) => {
         let queryFunc = query(db_selected);
         
         // Fetch the maximum AppId from the database
-        const maxIdResult = await query("SELECT MAX(AppId) AS maxAppId FROM Game_table", [], 'READ');
+        const maxIdResult = await queryFunc("SELECT MAX(AppId) AS maxAppId FROM Game_table", [], 'READ');
         const maxAppId = maxIdResult[0]?.maxAppId || 0; // Default to 0 if no entries are present
         
         console.log("Current max AppId:", maxAppId);
@@ -189,13 +187,23 @@ router.post('/create', async (req, res) => {
 
         console.log("Generated AppId:", gameId);
 
-        req.body.AppId = gameId; // Add generated AppId to the request body
+        req.body.AppID = gameId; // Add generated AppId to the request body
+
+        const sql_script = "INSERT INTO Game_table VALUES (?, ?, ?, ?, ?, ?, ?)";
+        const values = [req.body.AppID, req.body.gameTitle, req.body.ownerRange, req.body.price, 
+            req.body.posReview, req.body.negReview, req.body.releasedDate];
+        const table = "GAME_TABLE";
+        const mode = "WRITE";
 
         // Insert the game data into the database
-        await query("INSERT INTO Game_table SET ?;", req.body, 'WRITE');
+        await queryFunc("INSERT INTO Game_table SET ?;", req.body, 'WRITE');
         console.log("Game successfully added with ID:", gameId);
-        
+
+        const result = await queryFunc(db_selected)(sql_script, values, table, mode);
+        console.log("Game successfully added with ID:", gameId);
+
         res.render('create', {
+            error: null,
             success: { status: 'ack', message: "Game created!" },
             db_selected: db_selected
         });
@@ -208,7 +216,6 @@ router.post('/create', async (req, res) => {
         });
     }
 });
-*/
 
 router.get("/update", (req, res) => {
     res.render('update', {
