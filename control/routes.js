@@ -212,7 +212,7 @@ router.get("/search-game/:search_name", async (req, res) => {
                 } else {
                     res.json({ success: true, results: results });
                 }
-                console.log(results); //debugging
+                //console.log(results); //debugging
                 connection.end(); // Close the connection after query execution
             });
         } else if (config[1] === true) {
