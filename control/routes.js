@@ -23,7 +23,7 @@ router.post("/config", async (req, res) => {
         req.body.config2 == 'true' ? true : false
     ];
     const prev_config = req.app.get('config');
-    /*
+    
     console.log("Incoming request:");
     console.log("db_selected: ", db_selected);
     console.log("prev_db_selected: ", prev_db_selected);
@@ -32,7 +32,7 @@ router.post("/config", async (req, res) => {
     console.log("req.body.config2: ", req.body.config2);
     console.log("new_config: ", new_config);
     console.log("prev_config: ", prev_config);
-    */
+    
     let changed = -1; // Initialize changed to -1 for no change
     for (let i = 0; i < new_config.length; i++) {
         if (new_config[i] != prev_config[i]) {
@@ -41,7 +41,7 @@ router.post("/config", async (req, res) => {
         }
     }
 
-    /*console.log("changed: ", changed);*/
+    console.log("changed: ", changed);
 
     req.app.set('config', new_config);
     req.app.set('access', db_selected);
