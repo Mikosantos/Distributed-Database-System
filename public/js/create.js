@@ -12,13 +12,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const ownerRange = formData.get("ownerRange");
             const posReview = formData.get("posReview");
             const negReview = formData.get("negReview");
-
-            console.log("Game Title: ", gameTitle);
-            console.log("Released Date: ", releasedDate);
-            console.log("Price: ", price);
-            console.log("ownerRange: ", ownerRange);
-            console.log("posReview: ", posReview);
-            console.log("negReview: ", negReview);
         })
     }
 });
