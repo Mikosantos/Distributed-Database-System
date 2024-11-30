@@ -1,5 +1,28 @@
 import mysql from 'mysql2';
 
+function query(db) {
+    return async(query_script, values, table, mode) => {
+        try {
+            // lock tables
+            await db.promise().query("LOCK TABLES " + table + " " + mode)
+            // execute query
+            const res = await db.promise().query(query_script, values);
+            // unlock
+            await db.promise().query("UNLOCK TABLES")
+            // retrieve results
+            return results[0];
+        } catch (err) {
+            try {
+                await db.promise().query("ROLLBACK")
+                await db.promise().query("UNLOCK TABLES")
+            } catch (err) {
+                throw Error(e.message)
+            }
+            throw Error(e.message)
+        }
+    }
+}
+
 export const connectToDB = (db_selected) => {
     // TODO: protect db details within env file
     const dbConfigs = [
