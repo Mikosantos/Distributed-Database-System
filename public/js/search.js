@@ -87,8 +87,8 @@ function displayResults(results) {
                 <td>${game.Release_date}</td>
                 <td>${game.Price}</td>
                 <td>${game.Estimated_owners}</td>
-                <td>${game.positive}</td>
-                <td>${game.negative}</td>
+                <td>${game.Positive != null ? game.Positive : game.positive}</td>
+                <td>${game.Negative != null ? game.Negative : game.negative}</td>
             `;
             tbody.appendChild(row);
         });
