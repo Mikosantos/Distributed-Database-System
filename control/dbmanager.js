@@ -25,6 +25,15 @@ const dbMap = {
     2: db3
 };
 
+export const disconnectDB = async (db_selected) => {
+    try {
+        await dbMap[db_selected].promise().end();;
+        console.log("Node DB disconnected.");
+    } catch (err) {
+        console.error("Error disconnecting DB", err);
+    }
+}
+
 export const query = (db_selected) => {
     const dbConnection = dbMap[parseInt(db_selected)];
 

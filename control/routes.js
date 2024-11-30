@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import { Router } from "express";
-import { db1, db2, db3, query, connectDB } from './dbmanager.js';
+import { db1, db2, db3, query, connectDB, reconnectDB, disconnectDB } from './dbmanager.js';
 const router = Router();
 
 
@@ -78,31 +78,25 @@ router.post("/config", async (req, res) => {
     console.log("Node selected:", parseInt(db_selected) + 1);
     */
 
-    // Map db_selected to the correct DB connection
-    let connection;
-    switch (db_selected) {
-        case '0':
-            connection = db1;
-            break;
-        case '1':
-            connection = db2;
-            break;
-        case '2':
-            connection = db3;
-            break;
-        default:
-            return res.render('config', {
-                error: { status: 'error', message: "Invalid database selected." },
-                db_selected: db_selected,
-                config: new_config
-            });
-    }
-
     try {
         const queryFunc = query(db_selected); // query func from dbmanager
         const [results] = await queryFunc("SELECT MIN(Release_date) AS Min_Release_Date, MAX(Release_date) AS Max_Release_Date FROM GAME_TABLE", [], 'READ');
 
         console.log(results);
+
+        // If there are changes, update node connections
+        if (changed >= 0) {
+            const nodeIdx = changed;
+            const nodeConfig = new_config[nodeIdx];
+            console.log(nodeConfig);
+
+            if (nodeConfig) {
+                connectDB(nodeIdx);
+                console.log("Node is now ON");
+            } else {
+                disconnectDB(nodeIdx);
+            }
+        }
 
         const message = db_selected == prev_db_selected
             ? (changed >= 0 
