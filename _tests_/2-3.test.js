@@ -6,16 +6,16 @@ const { query} = require('../control/dbmanager.js');
 
 describe('Step 2', () => {
     const db_selected_1 = 0;
-    const db_selected_2 = 0;
-    const ids = ['10', '10'];
-    const testName1 = 'read-write test again';
+    const db_selected_2 = 1;
+    const ids = ['20', '20'];
+    const testName1 = 'write-write test again';
 
     let queryGameBefore2010, queryGameDuringAfter2010;
     let newQueryGameBefore2010, newQueryGameDuringAfter2010;
     let latestQueryGameBefore2010, latestQueryGameDuringAfter2010;
 
-    test('Case 2, Read-Write Concurrency Test.', async () => {
-        console.log('Starting test for Read-Write Concurrency...');
+    test('Case 3, Write-Write Concurrency Test.', async () => {
+        console.log('Starting test for Write-Write Concurrency...');
         
         latestQueryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
         console.log("8: Latest Query Game Before 2010", latestQueryGameBefore2010);
@@ -80,39 +80,36 @@ describe('Step 2', () => {
             for (var j = 0; j < 2; j++) { 
                 await pages[i][j].goto('http://localhost:3000/'); 
                 await pages[i][j].setViewport({ width: width, height: height }); 
-                if (j == 0) { 
-                    await pages[i][j].click('#read'); 
-                    await pages[i][j].locator('#read-input').fill(ids[i]); 
-                } else { 
-                    await pages[i][j].click('#update'); 
-                    await pages[i][j].locator('#update-id').fill(ids[i]); 
-                    await pages[i][j].locator('#update-gameTitle').fill(testName1);
-                    await pages[i][j].evaluate(() => {
-                        const dateInput = document.querySelector('#releasedDate');
-                        dateInput.value = '2024-12-01'; 
-                        dateInput.dispatchEvent(new Event('input')); 
-                        dateInput.dispatchEvent(new Event('change')); 
-                    }); 
-                    await pages[i][j].locator('#price').fill('300'); 
-                    await pages[i][j].evaluate(() => {
-                        const dropdown = document.querySelector('select.inputString');
-                        dropdown.value = '0-0';
-                        dropdown.dispatchEvent(new Event('change'));
-                    });
-                                  
-                    await pages[i][j].locator('#posReview').fill('300');
-                    await pages[i][j].locator('#negReview').fill('300'); 
-                }
+                await pages[i][j].click('#update'); 
+                await pages[i][j].locator('#update-id').fill(ids[i]); 
+                await pages[i][j].locator('#update-gameTitle').fill(testName1);
+                await pages[i][j].evaluate(() => {
+                    const dateInput = document.querySelector('#releasedDate');
+                    dateInput.value = '2024-12-01'; 
+                    dateInput.dispatchEvent(new Event('input')); 
+                    dateInput.dispatchEvent(new Event('change')); 
+                }); 
+                await pages[i][j].locator('#price').fill('300'); 
+                await pages[i][j].evaluate(() => {
+                    const dropdown = document.querySelector('select.inputString');
+                    dropdown.value = '0-0';
+                    dropdown.dispatchEvent(new Event('change'));
+                });
+                                
+                await pages[i][j].locator('#posReview').fill('300');
+                await pages[i][j].locator('#negReview').fill('300'); 
+            
             }
         }
         await new Promise(resolve => setTimeout(resolve, 4000));
 
         pages[0][1].click('#update-button'); 
-        pages[0][0].click('#read-button');   
+        pages[0][0].click('#update-button');   
         pages[1][1].click('#update-button'); 
-        pages[1][0].click('#read-button');   
+        pages[1][0].click('#update-button');   
 
         await pages[1][1].waitForNetworkIdle(200);
+        await new Promise(resolve => setTimeout(resolve, 4000));
 
         browsers[0].close();
         browsers[1].close();
