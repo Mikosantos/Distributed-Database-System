@@ -63,20 +63,45 @@ export const query = (db_selected) => {
     }
 }
 
-export const logTransaction = async (node_source, node_target, action, status, query, execution_time) => {
-    const logQuery = `
-        INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    const values = [node_source, node_target, action, status, query, execution_time];
 
-    try {
-        await db1.promise().query(logQuery, values); // Assuming db1 is always accessible for logging
-        console.log(`Transaction log inserted`);
-    } catch (err) {
-        console.error(`Failed to insert transaction log`, err);
+export const logTransaction = (db_selected) => {
+    const dbConnection = dbMap[parseInt(db_selected)];
+
+    if (!dbConnection) {
+        throw new Error('Invalid database selection');
     }
-};
+
+    return async(query_script, values, mode) => {
+        try {
+            const [rows] = await dbConnection.promise().query(query_script, values);
+            await dbConnection.promise().query("COMMIT");
+            return rows;
+
+        } catch (err) {
+            try {
+                await dbConnection.promise().query("ROLLBACK");
+                await dbConnection.promise().query("UNLOCK TABLES");
+            } catch (rollbackErr) {
+                throw new Error(rollbackErr.message);
+            }
+            throw new Error(err.message);
+        }
+    }
+}
+
+// export const logTransaction = async (node_source, node_target, action, status, query, execution_time) => {
+//     const logQuery = 
+//         `INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time)
+//         VALUES (?, ?, ?, ?, ?, ?)`;
+//     const values = [node_source, node_target, action, status, query, execution_time];
+
+//     try {
+//         await db1.promise().query(logQuery, values); // Assuming db1 is always accessible for logging
+//         console.log(`Transaction log inserted`);
+//     } catch (err) {
+//         console.error(`Failed to insert transaction log`, err);
+//     }
+// };
 
 // Disconnect all databases
 export const disconnectAllDBs = async () => {

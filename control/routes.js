@@ -212,7 +212,12 @@ router.post('/create', async (req, res) => {
 
         // Log the transaction
         const execution_time = new Date();
-        await logTransaction(`NODE_${db_selected + 1}`, `NODE_${db_selected + 1}`, 'INSERT', 'COMPLETE', sql_script, execution_time);
+        const transactionQuery = logTransaction(db_selected);
+
+        const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+        const T_values = [`NODE_${db_selected + 1}`, `NODE_${db_selected + 1}`, 'INSERT', 'COMPLETE', sql_script, execution_time];
+        const T_mode = "WRITE";
+        await transactionQuery(T_sql_script, T_values, T_mode);
 
         // Data replication from NODE 1 to NODE 2 or NODE 3
         if (config[0] === true) {
@@ -244,14 +249,19 @@ async function replicateData(nodeSource, nodeTarget, sql_script, values) {
     console.log(`DATA REPLICATION TO ${nodeDescription}`);
 
     const queryFunc = query(nodeTarget);
+    const transactionQuery = logTransaction(nodeTarget);
+
+    const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+    const T_values = [`NODE_${nodeSource + 1}`, nodeDescription, 'INSERT', 'COMPLETE', sql_script, execution_time];
+    const T_mode = "WRITE";
 
     try {
         await queryFunc(sql_script, values, 'WRITE');
         console.log(`Data successfully replicated to ${nodeDescription} with ID: ${values[0]}`);
-        await logTransaction(`NODE_${nodeSource}`, nodeDescription, 'INSERT', 'COMPLETE', sql_script, execution_time);
+        await transactionQuery(T_sql_script, T_values, T_mode);
     } catch (err) {
         console.error(`Data replication to ${nodeDescription} failed:`, err);
-        await logTransaction(`NODE_${nodeSource}`, nodeDescription, 'INSERT', 'FAIL', err.message, execution_time);
+        await transactionQuery(T_sql_script, T_values, T_mode);
     }
 }
 
