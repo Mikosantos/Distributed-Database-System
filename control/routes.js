@@ -1,8 +1,8 @@
 import { config } from "dotenv";
 import { Router } from "express";
-
-const router = Router();
 import { db1, db2, db3, query, connectDB } from './dbmanager.js';
+const router = Router();
+
 
 router.get("/config", (req, res) => {
     const config = req.app.get('config');
@@ -271,6 +271,69 @@ router.get("/search-game/:search_name", async (req, res) => {
     } catch (error) {
         console.error('Error searching games:', error);
         res.status(500).json({ success: false, message: 'Error searching games', error });
+    }
+});
+
+router.get("/report", async (req, res) => {
+    try {
+        const dbSelected = 0;
+        const dbMap = [db1, db2, db3];
+        const connection = dbMap[parseInt(dbSelected)];
+
+        const query_1 = `SELECT COUNT(AppID) AS pre2010Count FROM GAME_TABLE WHERE YEAR(Release_date) < 2010`;
+        const query_2 = `SELECT COUNT(AppID) AS post2010Count FROM GAME_TABLE WHERE YEAR(Release_date) >= 2010`;
+        const query_3  = `SELECT DISTINCT Estimated_owners AS Owner_Range, COUNT(AppID) AS Count FROM GAME_TABLE GROUP BY Estimated_owners ORDER BY Estimated_owners ASC`;
+
+
+        const pre2010Results = await new Promise((resolve, reject) => {
+            connection.query(query_1, (error, results) => {
+                if (error) return reject(error);
+                resolve(results[0]);
+            });
+        });
+
+        const post2010Results = await new Promise((resolve, reject) => {
+            connection.query(query_2, (error, results) => {
+                if (error) return reject(error);
+                resolve(results[0]);
+            });
+        });
+
+        
+        const estimatedOwnersStats = await new Promise((resolve, reject) => {
+            connection.query(query_3, (error, results) => {
+                if (error) return reject(error);
+                resolve(results); 
+            });
+        });
+        
+        const sortedEstimatedOwnersStats = estimatedOwnersStats
+            .map(stat => ({
+                range: stat.Owner_Range,
+                count: stat.Count,
+            }))
+            .sort((a, b) => {
+                const startA = parseInt(a.range.split('-')[0], 10);
+                const startB = parseInt(b.range.split('-')[0], 10);
+                return startA - startB; 
+            });
+        
+        const gameReports = [
+            { count: pre2010Results.pre2010Count },
+            { count: post2010Results.post2010Count },
+        ];
+        
+        res.render('report', {
+            gameReports: gameReports,
+            estimatedOwnersReport: sortedEstimatedOwnersStats,
+            error: null,
+            cssFile: 'report.css',
+        });
+        
+
+    } catch (error) {
+        console.error('Error generating report:', error);
+        res.status(500).json({ success: false, message: 'Error generating report', error });
     }
 });
 

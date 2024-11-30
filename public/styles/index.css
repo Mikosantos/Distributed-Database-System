@@ -106,7 +106,7 @@ body {
     stroke: var(--darkgreen);
 }
 
-.delete path:hover{
+.report path:hover{
     transition: 0.3s all;
     fill: var(--darkgreen);
 }
