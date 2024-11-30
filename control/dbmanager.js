@@ -63,6 +63,21 @@ export const query = (db_selected) => {
     }
 }
 
+export const logTransaction = async (node_source, node_target, action, status, query, execution_time) => {
+    const logQuery = `
+        INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const values = [node_source, node_target, action, status, query, execution_time];
+
+    try {
+        await db1.promise().query(logQuery, values); // Assuming db1 is always accessible for logging
+        console.log(`Transaction log inserted`);
+    } catch (err) {
+        console.error(`Failed to insert transaction log`, err);
+    }
+};
+
 // Disconnect all databases
 export const disconnectAllDBs = async () => {
     try {

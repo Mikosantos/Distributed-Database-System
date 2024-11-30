@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import { Router } from "express";
-import { db1, db2, db3, query, connectDB } from './dbmanager.js';
+import { db1, db2, db3, query, connectDB, logTransaction } from './dbmanager.js';
 const router = Router();
 
 
@@ -167,8 +167,21 @@ router.post('/create', async (req, res) => {
     const config = req.app.get('config');
 
     // All write operations are done only in node 0 (Master node)
-    const db_selected = 0;
+    // HOWEVER, If node 0 (master node) is down, transfer access to the slave nodes
+    // depending on the year the game was released.
+    const releasedDate = new Date(req.body.releasedDate);
 
+    let db_selected;
+    
+    if(config[0] === true) {
+        console.log("NODE 1 is UP");
+        db_selected = 0;
+    }
+    else { 
+        console.log("NODE 1 is DOWN");
+        db_selected = releasedDate.getFullYear() < 2010 ? 1 : 2;
+        console.log(`Transferring master mode to ${db_selected === 1 ? 'NODE 2' : 'NODE 3'}`);
+    }
     // console.log("Received game details:", req.body);
     // console.log("Determined database:", db_selected);
 
@@ -191,12 +204,24 @@ router.post('/create', async (req, res) => {
 
         const sql_script = "INSERT INTO GAME_TABLE (AppID, Name, Release_date, Price, Estimated_owners, positive, negative) VALUES (?, ?, ?, ?, ?, ?, ?)";
         const values = [req.body.AppID, req.body.gameTitle, req.body.releasedDate, req.body.price, req.body.ownerRange, 
-            req.body.posReview, req.body.negReview];
+                        req.body.posReview, req.body.negReview];
         const mode = "WRITE";
 
         await queryFunc(sql_script, values, 'WRITE');
         console.log("Game successfully added with ID:", gameId);
 
+        // Log the transaction
+        const execution_time = new Date();
+        await logTransaction(`NODE_${db_selected + 1}`, `NODE_${db_selected + 1}`, 'INSERT', 'COMPLETE', sql_script, execution_time);
+
+        // Data replication from NODE 1 to NODE 2 or NODE 3
+        if (config[0] === true) {
+            const nodeTarget = releasedDate.getFullYear() < 2010 ? 1 : 2;
+            await replicateData(db_selected, nodeTarget, sql_script, values);
+        } else { 
+            await replicateData(db_selected, 0, sql_script, values);
+        }
+        
         res.render('create', {
             error: null,
             success: { status: 'ack', message: "Game created!" },
@@ -211,6 +236,24 @@ router.post('/create', async (req, res) => {
         });
     }
 });
+
+async function replicateData(nodeSource, nodeTarget, sql_script, values) {
+    const execution_time = new Date();
+    const nodeDescription = nodeTarget === 0 ? "NODE 1" : nodeTarget === 1 ? "NODE 2" : "NODE 3";
+
+    console.log(`DATA REPLICATION TO ${nodeDescription}`);
+
+    const queryFunc = query(nodeTarget);
+
+    try {
+        await queryFunc(sql_script, values, 'WRITE');
+        console.log(`Data successfully replicated to ${nodeDescription} with ID: ${values[0]}`);
+        await logTransaction(`NODE_${nodeSource}`, nodeDescription, 'INSERT', 'COMPLETE', sql_script, execution_time);
+    } catch (err) {
+        console.error(`Data replication to ${nodeDescription} failed:`, err);
+        await logTransaction(`NODE_${nodeSource}`, nodeDescription, 'INSERT', 'FAIL', err.message, execution_time);
+    }
+}
 
 router.get("/update", (req, res) => {
     res.render('update', {
