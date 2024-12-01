@@ -44,6 +44,10 @@ router.post("/config", async (req, res) => {
     /*console.log("changed: ", changed);*/
 
     req.app.set('config', new_config);
+
+    const config = req.app.get('config');
+    await checkAndReplicate(config);
+
     req.app.set('access', db_selected);
 
     // SAMPLE QUERY
@@ -151,11 +155,11 @@ router.post("/config", async (req, res) => {
 */
 
 router.get("/", async (req, res) => {
-    const config = req.app.get('config');
+    //const config = req.app.get('config');
     
     try {
         // Check and replicate pending transactions
-        await checkAndReplicate(config);
+        // await checkAndReplicate(config);
 
         // Render index/landing page
         res.render('index',{
