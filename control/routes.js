@@ -174,6 +174,7 @@ router.get("/create", (req, res) => {
     });
 });
 
+// ------------------------------------------------------------------------------------------------------------ //
 // Function to check if a node is up
 function isNodeUp(node, config) {
     return config[node];
@@ -368,7 +369,14 @@ async function replicatePendingTransaction(transaction, config) {
         const transactionQuery = logTransaction(nodeTarget);
         const execution_time = new Date();
         const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+
         const T_values = [transaction.node_source, transaction.node_target, 'INSERT', 'COMPLETE', transaction.query, execution_time];
+        // if (transaction.status === "INSERT") {
+        //     T_values = [transaction.node_source, transaction.node_target, 'INSERT', 'COMPLETE', transaction.query, execution_time];
+        // } else if (transaction.status === "UPDATE") {
+        //     T_values = [transaction.node_source, transaction.node_target, 'UPDATE', 'COMPLETE', transaction.query, execution_time];
+        // }
+         
         const T_mode = "WRITE";
         await transactionQuery(T_sql_script, T_values, T_mode);
     } catch (err) {
@@ -392,7 +400,8 @@ async function checkAndReplicate(config) {
         }
     }
 }
-
+// ------------------------------------------------------------------------------------------------------------ //
+// ------------------------------------------------------------------------------------------------------------ //
 router.get("/update", (req, res) => {
     res.render('update', {
         error: null,
@@ -401,8 +410,24 @@ router.get("/update", (req, res) => {
 });
 
 router.post('/update', async (req, res) => {
+    const config = req.app.get('config');
+
     // All write operations are done only in node 0 (Master node)
-    const db_selected = 0;
+    // HOWEVER, If node 0 (master node) is down, transfer access to the slave nodes
+    // depending on the year the game was released.
+    const releasedDate = new Date(req.body.releasedDate);
+
+    let db_selected;
+    
+    if(config[0] === true) {
+        console.log("NODE 1 is UP");
+        db_selected = 0;
+    }
+    else { 
+        console.log("NODE 1 is DOWN");
+        db_selected = releasedDate.getFullYear() < 2010 ? 1 : 2;
+        console.log(`Transferring master mode to ${db_selected === 1 ? 'NODE 2' : 'NODE 3'}`);
+    }
 
     // console.log("Received game details:", req.body);
     // console.log("Determined database:", db_selected);
@@ -420,6 +445,36 @@ router.post('/update', async (req, res) => {
         await queryFunc(sql_script, values, 'WRITE');
         console.log("Game with ID: " + gameId + " successfully edited!", gameId);
 
+        // Log the transaction
+        const execution_time = new Date();
+        const transactionQuery = logTransaction(db_selected);
+
+        const full_script = `
+            UPDATE GAME_TABLE
+            SET 
+                Name = '${values[0]}', 
+                Release_date = '${values[1]}', 
+                Price = ${values[2]}, 
+                Estimated_owners = '${values[3]}', 
+                positive = ${values[4]}, 
+                negative = ${values[5]}
+            WHERE AppID = ${values[6]}
+        `;
+
+        const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+        const T_values = [`NODE_${db_selected + 1}`, `NODE_${db_selected + 1}`, 'UPDATE', 'COMPLETE', full_script, execution_time];
+        const T_mode = "WRITE";
+        await transactionQuery(T_sql_script, T_values, T_mode);
+
+        // Data replication from NODE 1 to NODE 2 or NODE 3
+        if (config[0] === true) {
+            const nodeTarget = releasedDate.getFullYear() < 2010 ? 1 : 2;
+            await replicateUpdateData(db_selected, nodeTarget, sql_script, values, config);
+        // Data replication from NODE 2 or 3 to NODE 1
+        } else { 
+            await replicateUpdateData(db_selected, 0, sql_script, values, config);
+        }
+
         res.render('update', {
             error: null,
             success: { status: 'ack', message: "Game edited!" },
@@ -435,8 +490,66 @@ router.post('/update', async (req, res) => {
     }
 });
 
+async function replicateUpdateData(nodeSource, nodeTarget, sql_script, values, config) {
+    const execution_time = new Date();
+    const nodeDescription = nodeTarget === 0 ? "NODE_1" : nodeTarget === 1 ? "NODE_2" : "NODE_3";
 
+    if (!isNodeUp(nodeTarget, config)) {
+        console.error(`DATA REPLICATION (UPDATE) to ${nodeDescription} failed: Node is down`);
+        const transactionQuery = logTransaction(nodeSource);
 
+        const full_script = `
+            UPDATE GAME_TABLE
+            SET 
+                Name = '${values[0]}', 
+                Release_date = '${values[1]}', 
+                Price = ${values[2]}, 
+                Estimated_owners = '${values[3]}', 
+                positive = ${values[4]}, 
+                negative = ${values[5]}
+            WHERE AppID = ${values[6]}
+        `;
+
+        const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+        const T_values = [`NODE_${nodeSource + 1}`, nodeDescription, 'UPDATE', 'PENDING', full_script, execution_time];
+        const T_mode = "WRITE";
+
+        await transactionQuery(T_sql_script, T_values, T_mode);
+        return;
+    }
+
+    console.log(`DATA REPLICATION (UPDATE) TO ${nodeDescription}`);
+
+    const queryFunc = query(nodeTarget);
+    const transactionQuery = logTransaction(nodeTarget);
+
+        const full_script = `
+            UPDATE GAME_TABLE
+            SET 
+                Name = '${values[0]}', 
+                Release_date = '${values[1]}', 
+                Price = ${values[2]}, 
+                Estimated_owners = '${values[3]}', 
+                positive = ${values[4]}, 
+                negative = ${values[5]}
+            WHERE AppID = ${values[6]}
+        `;
+
+        const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+        const T_values = [`NODE_${nodeSource + 1}`, nodeDescription, 'UPDATE', 'COMPLETE', full_script, execution_time];
+        const T_mode = "WRITE";
+
+    try {
+        await queryFunc(sql_script, values, 'WRITE');
+        console.log(`Data successfully replicated (UPDATE) to ${nodeDescription} with ID: ${values[0]}`);
+        await transactionQuery(T_sql_script, T_values, T_mode);
+    } catch (err) {
+        console.error(`Data replication (UPDATE) to ${nodeDescription} failed:`, err);
+        await transactionQuery(T_sql_script, T_values, T_mode);
+    }
+}
+
+// ------------------------------------------------------------------------------------------------------------ //
 router.get("/search", (req, res) => {
     res.render('search', {
         results: null, 
@@ -461,13 +574,27 @@ router.get("/search-game/:search_name", async (req, res) => {
 
     try {
         // Construct the SQL query
-        const dbSelected = req.app.get('access'); 
         const config = req.app.get('config'); 
-        
         const dbMap = [db1, db2, db3];
-        const connection = dbMap[parseInt(dbSelected)];
-
+        
         //console.log(config);
+        let db_selected;
+    
+        if(config[0] === true) {
+            console.log("NODE 1 is UP");
+            db_selected = 0;
+        }
+        else if (config[1] === true) { 
+            console.log("NODE 1 is DOWN");
+            db_selected = 1;
+            console.log(`Transferring master mode to NODE 2`);
+        } else if (config[2] === true) { 
+            console.log("NODE 1 and NODE 2 is DOWN");
+            db_selected = 2;
+            console.log(`Transferring master mode to NODE 3`);
+        }
+
+        const connection = dbMap[parseInt(db_selected)];
 
         const conditions = searchWords.map(word => `Name LIKE ?`).join(' OR ');
         const values = searchWords.map(word => `%${word}%`);
