@@ -7,6 +7,20 @@ const router = Router();
 router.get("/config", (req, res) => {
     const config = req.app.get('config');
     const db_selected = req.app.get('access'); 
+
+    console.log("\n\\=====================================\\");
+    console.log("   === NODE STATUS ===");
+    console.log("\\=====================================\\");
+    const nodeStatuses = ['NODE 1', 'NODE 2', 'NODE 3'];
+    nodeStatuses.forEach((node, index) => {
+        if (config[index]) {
+            console.log(`   ${node} is UP`);
+        } else {
+            console.log(`   ${node} is DOWN`);
+        }
+    });
+    console.log("\\=====================================\\");
+
     res.render('config', {
         error: null,
         db_selected:  db_selected,
@@ -106,7 +120,20 @@ router.post("/config", async (req, res) => {
         const queryFunc = query(db_selected); // query func from dbmanager
         const [results] = await queryFunc("SELECT MIN(Release_date) AS Min_Release_Date, MAX(Release_date) AS Max_Release_Date FROM GAME_TABLE", [], 'READ');
 
-        console.log(results);
+        console.log("\n\\=====================================\\");
+        console.log("   === NODE STATUS ===");
+        console.log("\\=====================================\\");
+        const nodeStatuses = ['NODE 1', 'NODE 2', 'NODE 3'];
+        nodeStatuses.forEach((node, index) => {
+            if (config[index]) {
+                console.log(`   ${node} is UP`);
+            } else {
+                console.log(`   ${node} is DOWN`);
+            }
+        });
+        console.log("\\=====================================\\");
+
+        //console.log(results);
 
         const message = db_selected == prev_db_selected
             ? (changed >= 0 
@@ -195,11 +222,11 @@ router.post('/create', async (req, res) => {
     let db_selected;
     
     if(config[0] === true) {
-        console.log("NODE 1 is UP");
+        console.log("\nNODE 1 is UP");
         db_selected = 0;
     }
     else { 
-        console.log("NODE 1 is DOWN");
+        console.log("\nNODE 1 is DOWN");
         db_selected = releasedDate.getFullYear() < 2010 ? 1 : 2;
         console.log(`Transferring master mode to ${db_selected === 1 ? 'NODE 2' : 'NODE 3'}`);
     }
@@ -280,6 +307,7 @@ async function replicateData(nodeSource, nodeTarget, sql_script, values, config)
     const execution_time = new Date();
     const nodeDescription = nodeTarget === 0 ? "NODE_1" : nodeTarget === 1 ? "NODE_2" : "NODE_3";
 
+    // NO NODES ARE DOWN = MEANING THEY GET REPLICATED INSTANTLY
     if (!isNodeUp(nodeTarget, config)) {
         console.error(`DATA REPLICATION to ${nodeDescription} failed: Node is down`);
         const transactionQuery = logTransaction(nodeSource);
@@ -304,8 +332,9 @@ async function replicateData(nodeSource, nodeTarget, sql_script, values, config)
         await transactionQuery(T_sql_script, T_values, T_mode);
         return;
     }
-
-    console.log(`DATA REPLICATION TO ${nodeDescription}`);
+    console.log("\n\\===========================================================================\\");
+    console.log(`   DATA REPLICATION TO ${nodeDescription}`);
+    console.log("\\===========================================================================\\");
 
     const queryFunc = query(nodeTarget);
     const transactionQuery = logTransaction(nodeTarget);
@@ -329,10 +358,10 @@ async function replicateData(nodeSource, nodeTarget, sql_script, values, config)
 
     try {
         await queryFunc(sql_script, values, 'WRITE');
-        console.log(`Data successfully replicated to ${nodeDescription} with ID: ${values[0]}`);
+        console.log(`Data successfully replicated to ${nodeDescription} with ID: ${values[0]}\n`);
         await transactionQuery(T_sql_script, T_values, T_mode);
     } catch (err) {
-        console.error(`Data replication to ${nodeDescription} failed:`, err);
+        console.error(`Data replication to ${nodeDescription} failed: `, err);
         await transactionQuery(T_sql_script, T_values, T_mode);
     }
 }
@@ -356,8 +385,11 @@ async function replicatePendingTransaction(transaction, config) {
     const nodeSource = transaction.node_source === 'NODE_1' ? 0 : transaction.node_target === 'NODE_2' ? 1 : 2;
     if (!isNodeUp(nodeTarget, config)) return;
 
-    console.log("NODE TARGET IS: " + transaction.node_target + "which is: " + nodeTarget)
-    console.log("NODE SOURCE IS: " + transaction.node_source + "which is: " + nodeSource)
+    console.log("\n\n\\===========================================================================\\");
+    console.log(" DATA REPLICATION")
+    console.log("\\===========================================================================\\");
+    console.log("NODE TARGET IS: " + transaction.node_target + " which is: " + nodeTarget)
+    console.log("NODE SOURCE IS: " + transaction.node_source + " which is: " + nodeSource)
     
     const queryFunc = query(nodeTarget);
     
@@ -365,20 +397,14 @@ async function replicatePendingTransaction(transaction, config) {
         console.log(transaction.query); //debugging
         await queryFunc(transaction.query, [], 'WRITE');
 
-        console.log(`Pending transaction replicated to ${transaction.node_target}`);
+        console.log(`DONE: Pending transaction is successfully replicated to ${transaction.node_target}\n`);
 
         await markTransactionAsComplete(transaction.log_id, nodeSource);
         
         const transactionQuery = logTransaction(nodeTarget);
         const execution_time = new Date();
         const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
-
         const T_values = [transaction.node_source, transaction.node_target, 'INSERT', 'COMPLETE', transaction.query, execution_time];
-        // if (transaction.status === "INSERT") {
-        //     T_values = [transaction.node_source, transaction.node_target, 'INSERT', 'COMPLETE', transaction.query, execution_time];
-        // } else if (transaction.status === "UPDATE") {
-        //     T_values = [transaction.node_source, transaction.node_target, 'UPDATE', 'COMPLETE', transaction.query, execution_time];
-        // }
          
         const T_mode = "WRITE";
         await transactionQuery(T_sql_script, T_values, T_mode);
