@@ -1,5 +1,6 @@
 jest.setTimeout(30000);
 
+/* CHANGE THE testNAME per test!! */
 const puppeteer = require('puppeteer');
 const { query} = require('../control/dbmanager.js');
 
@@ -7,9 +8,8 @@ const { query} = require('../control/dbmanager.js');
 describe('Step 2', () => {
     
     const db_selected_1 = 0;
-    const db_selected_2 = 1;
     const ids = ['20', '20'];
-    const testName1 = 'write-write test again';
+    const testName1 = 'write-write test!!';
 
     let queryGameBefore2010, queryGameDuringAfter2010;
     let newQueryGameBefore2010, newQueryGameDuringAfter2010;
@@ -18,17 +18,12 @@ describe('Step 2', () => {
     test('Case 3, Write-Write Concurrency Test.', async () => {
         console.log('Starting test for Write-Write Concurrency...');
         
-        latestQueryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
-        console.log("8: Latest Query Game Before 2010", latestQueryGameBefore2010);
-
-        latestQueryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
-        console.log("9: Latest Query Game During/After 2010", latestQueryGameDuringAfter2010);
-
-        expect(latestQueryGameBefore2010[0].Name).not.toEqual(newQueryGameBefore2010[0].Name);
-        expect(latestQueryGameDuringAfter2010[0].Name).not.toEqual(newQueryGameDuringAfter2010[0].Name);
-
-        expect(latestQueryGameBefore2010[0].Name).toEqual(queryGameBefore2010[0].Name);
-        expect(latestQueryGameDuringAfter2010[0].Name).toEqual(queryGameDuringAfter2010[0].Name);
+        latestQueryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", ids[0], 'READ');
+        latestQueryGameDuringAfter2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", ids[1], 'READ');
+        expect(latestQueryGameBefore2010[0].Name).not.toEqual(queryGameBefore2010[0].Name);
+        expect(latestQueryGameDuringAfter2010[0].Name).not.toEqual(queryGameDuringAfter2010[0].Name);
+        expect(latestQueryGameBefore2010[0].Name).toEqual(newQueryGameBefore2010[0].Name);
+        expect(latestQueryGameDuringAfter2010[0].Name).toEqual(newQueryGameDuringAfter2010[0].Name);
 
         console.log("10: Test Assertions Passed");
     });
@@ -36,17 +31,9 @@ describe('Step 2', () => {
 
     beforeAll(async () => {
         queryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
-        console.log("1: Initial Query Game Before 2010", queryGameBefore2010);
-
-        queryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
-        console.log("2: Initial Query Game During/After 2010", queryGameDuringAfter2010);
-
+        queryGameDuringAfter2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
         newQueryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
-        console.log("3: New Query Game Before 2010", newQueryGameBefore2010);
-
-        newQueryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
-        console.log("4: New Query Game During/After 2010", newQueryGameDuringAfter2010);
-
+        newQueryGameDuringAfter2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
         newQueryGameBefore2010[0].Name = testName1;
         newQueryGameDuringAfter2010[0].Name = testName1;
         const width = 1280; 
@@ -71,7 +58,7 @@ describe('Step 2', () => {
                 (await browsers[0].pages())[0], // Browser for read operation
                 (await browsers[1].pages())[0]  // Browser for update operation
             ],
-            [   // Vismin node
+            [   
                 (await browsers[2].pages())[0], // Browser for read operation
                 (await browsers[3].pages())[0]  // Browser for update operation
             ]
