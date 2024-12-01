@@ -5,6 +5,7 @@ const { query} = require('../control/dbmanager.js');
 
 
 describe('Step 2', () => {
+    
     const db_selected_1 = 0;
     const db_selected_2 = 1;
     const ids = ['20', '20'];
@@ -116,5 +117,5 @@ describe('Step 2', () => {
         browsers[2].close();
         browsers[3].close();
         
-    });
+    }); 
 }, 30000);

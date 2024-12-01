@@ -74,5 +74,4 @@ describe('Step 2', () => {
         expect(await query(db_selected)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ')).not.toEqual(gameDuringAfter2010);
         
         });
-    
 }, 60000);

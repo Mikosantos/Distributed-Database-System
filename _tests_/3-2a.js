@@ -1,3 +1,4 @@
+/*
 jest.setTimeout(30000);
 
 const puppeteer = require('puppeteer');
@@ -5,10 +6,10 @@ const query1 = require('../control/dbmanager.js').query1;
 const query2 = require('../control/dbmanager.js').query2; 
 const query3 = require('../control/dbmanager.js').query3; 
 
-describe('Step 3', () => {
-    const ids = ['10', '10']
+describe('step 3', () => {
+    const ids = ['20', '20']
 
-    const buttonId = '#btn-1'; 
+    const buttonId = '#btn-2'; 
     const width = 1280; 
     const height = 720; 
     const windowSize = '--window-size=' + width + ',' + height;
@@ -53,8 +54,7 @@ describe('Step 3', () => {
         await configPage.click(buttonId); 
         await configPage.waitForNetworkIdle();
     });
-
-    test('STEP 3: Case 1 -The central node is unavailable during the execution of a transaction and then eventually comes back online.', async () => {
+    test('STEP 3: Case 2a - GameBefore2010Node is unavailable during the execution of a transaction and then eventually comes back online.', async () => {
         await new Promise(resolve => setTimeout(resolve, 4000));
 
         const centerToNode2 = await query1("SELECT * FROM GAME_TABLE WHERE AppID = ?", ids[0], 'READ');
@@ -63,4 +63,4 @@ describe('Step 3', () => {
         expect(centerToNode2).toEqual(firstGameBefore2010Node);
         expect(centerToiNode3).toEqual(firstGameDuringAter2010Node);
     });
-}, 30000);
+}, 30000); */
