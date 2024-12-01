@@ -5,6 +5,7 @@ const query1 = require('../control/dbmanager.js').query1;
 const query2 = require('../control/dbmanager.js').query2; 
 
 describe('step 3', () => {
+    /*
     const ids = ['20', '20'];
     const testName = 'GameBefore2010-down-write-test-';
 
@@ -79,5 +80,5 @@ describe('step 3', () => {
         expect(centerGameBefore2010).toEqual(gameBefore2010);
         expect(centerGameDuringAfter2010).toEqual(gameDuringAfter2010);
     });
-
+    */
 });

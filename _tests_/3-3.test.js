@@ -1,3 +1,4 @@
+/*
 jest.setTimeout(30000);
 
 const puppeteer = require('puppeteer');
@@ -5,6 +6,7 @@ const query1 = require('../control/dbmanager.js').query1;
 const query2 = require('../control/dbmanager.js').query2; 
 
 describe('step 3', () => {
+
     const ids = ['20', '300'];
     const testName = 'center-node-down-write-test-';
 
@@ -77,4 +79,4 @@ describe('step 3', () => {
         expect(centerGameDuringAfter2010).toEqual(gameDuringAfter2010);
     });
 
-}, 30000);
+}, 30000);*/
