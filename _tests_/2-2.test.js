@@ -18,10 +18,8 @@ describe('Step 2', () => {
         console.log('Starting test for Read-Write Concurrency...');
         
         latestQueryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
-        console.log("8: Latest Query Game Before 2010", latestQueryGameBefore2010);
 
         latestQueryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
-        console.log("9: Latest Query Game During/After 2010", latestQueryGameDuringAfter2010);
 
         expect(latestQueryGameBefore2010[0].Name).not.toEqual(newQueryGameBefore2010[0].Name);
         expect(latestQueryGameDuringAfter2010[0].Name).not.toEqual(newQueryGameDuringAfter2010[0].Name);
@@ -35,16 +33,12 @@ describe('Step 2', () => {
 
     beforeAll(async () => {
         queryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
-        console.log("1: Initial Query Game Before 2010", queryGameBefore2010);
 
         queryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
-        console.log("2: Initial Query Game During/After 2010", queryGameDuringAfter2010);
 
         newQueryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
-        console.log("3: New Query Game Before 2010", newQueryGameBefore2010);
 
         newQueryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
-        console.log("4: New Query Game During/After 2010", newQueryGameDuringAfter2010);
 
         newQueryGameBefore2010[0].Name = testName1;
         newQueryGameDuringAfter2010[0].Name = testName1;

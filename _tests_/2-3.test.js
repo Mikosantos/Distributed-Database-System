@@ -92,7 +92,7 @@ describe('Step 2', () => {
                 await pages[i][j].locator('#price').fill('300'); 
                 await pages[i][j].evaluate(() => {
                     const dropdown = document.querySelector('select.inputString');
-                    dropdown.value = '0-0';
+                    dropdown.value = '0 - 0';
                     dropdown.dispatchEvent(new Event('change'));
                 });
                                 
