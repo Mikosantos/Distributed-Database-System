@@ -66,6 +66,7 @@ describe('Step 2', () => {
 
     });
     
+    
     test('Case 1, Read-Read Concurrency Test.', async () => {
         
         expect(await query(db_selected)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ')).toEqual(gameBefore2010);

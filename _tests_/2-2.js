@@ -1,4 +1,5 @@
 jest.setTimeout(30000);
+jest.setTimeout(30000);
 
 const puppeteer = require('puppeteer');
 const { query} = require('../control/dbmanager.js');
@@ -35,17 +36,15 @@ describe('Step 2', () => {
         queryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
 
         queryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
-
-        newQueryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
-
-        newQueryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
-
+        
+        newQueryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", ids[0], 'READ');
+        newQueryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", ids[1], 'READ');
         newQueryGameBefore2010[0].Name = testName1;
         newQueryGameDuringAfter2010[0].Name = testName1;
-        const width = 1280; 
-        const height = 720; 
-        const windowSize = '--window-size=' + width + ',' + height; 
-        const slowMo = 0; 
+        const width = 1280; // Browser viewport width
+        const height = 720; // Browser viewport height
+        const windowSize = '--window-size=' + width + ',' + height; // Argument for window size
+        const slowMo = 0; // Delay (in ms) between Puppeteer actions
         const browserConfig = {
             headless: false, 
             slowMo: slowMo, 
@@ -80,22 +79,7 @@ describe('Step 2', () => {
                 } else { 
                     await pages[i][j].click('#update'); 
                     await pages[i][j].locator('#update-id').fill(ids[i]); 
-                    await pages[i][j].locator('#update-gameTitle').fill(testName1);
-                    await pages[i][j].evaluate(() => {
-                        const dateInput = document.querySelector('#releasedDate');
-                        dateInput.value = '2024-12-01'; 
-                        dateInput.dispatchEvent(new Event('input')); 
-                        dateInput.dispatchEvent(new Event('change')); 
-                    }); 
-                    await pages[i][j].locator('#price').fill('300'); 
-                    await pages[i][j].evaluate(() => {
-                        const dropdown = document.querySelector('select.inputString');
-                        dropdown.value = '0-0';
-                        dropdown.dispatchEvent(new Event('change'));
-                    });
-                                  
-                    await pages[i][j].locator('#posReview').fill('300');
-                    await pages[i][j].locator('#negReview').fill('300'); 
+                    await pages[i][j].locator('#update-gameTitle').fill(testName);
                 }
             }
         }
@@ -113,5 +97,20 @@ describe('Step 2', () => {
         browsers[2].close();
         browsers[3].close();
         
+    });
+
+    
+
+    it('Case 2, Read-Write Concurrency Test.', async () => {
+        latestQueryGameBefore2010 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[0]], 'READ');
+        latestQueryGameDuringAfter2010 = await query(db_selected_2)("SELECT * FROM GAME_TABLE WHERE AppID = ?", [ids[1]], 'READ');
+        console.log("latestQueryGameBefore2010[0].Name: ",latestQueryGameBefore2010[0].Name);
+        console.log("queryGameBefore2010[0].Name: ",queryGameBefore2010[0].Name);
+        /*
+        expect(latestQueryGameBefore2010[0].Name).not.toEqual(queryGameBefore2010[0].Name);
+        expect(latestQueryGameDuringAfter2010[0].Name).not.toEqual(queryGameDuringAfter2010[0].Name);
+        */
+        expect(latestQueryGameBefore2010[0].Name).toEqual(newQueryGameBefore2010[0].Name);
+        expect(latestQueryGameDuringAfter2010[0].Name).toEqual(newQueryGameDuringAfter2010[0].Name);
     });
 }, 30000);

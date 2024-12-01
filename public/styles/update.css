@@ -85,11 +85,15 @@ form{
     grid-gap: 20px;
     grid-template-columns: repeat(3, 1fr);
     /* grid-template-rows: repeat(4, 1fr); */
-    grid-template-areas: "a a a"
+    grid-template-areas: "b b b"
+                        "a a a"
                          "a1 a2 a3"
-                         "h h h"
-                         "a4 a5 a6"
+                         "h1 h2 h3"
                          "b1 b1 b1";
+}
+
+.appid {
+    grid-area: a;
 }
 
 .gameTitle{
@@ -100,12 +104,16 @@ form{
     grid-area: a2;
 }
 
-.lowestRange{
-    grid-area: a4;
+.price {
+    grid-area: a3;
 }
 
-.highestRange{
-    grid-area: a5;
+.ownerRange {
+    grid-area: h1;
+}
+
+.review {
+    grid-area: h2;
 }
 
 button{
@@ -117,8 +125,8 @@ button{
     font-size: 1.5rem;
 }
 
-.a {
-    grid-area: a;
+.b {
+    grid-area: b;
 }
 
 .h{
@@ -127,14 +135,6 @@ button{
 
 .p{
     grid-area: p;
-}
-
-.appid{
-    margin:30px 20px;
-    grid-area: z;
-    display: flex;
-    align-items: center;
-    
 }
 
 .appid .subtitle {
