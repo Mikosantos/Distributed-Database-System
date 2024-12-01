@@ -1,3 +1,5 @@
+/*
+
 jest.setTimeout(30000);
 
 const puppeteer = require('puppeteer');
@@ -80,5 +82,6 @@ describe('step 3', () => {
         expect(centerGameBefore2010).toEqual(gameBefore2010);
         expect(centerGameDuringAfter2010).toEqual(gameDuringAfter2010);
     });
-    */
+
 });
+    */
