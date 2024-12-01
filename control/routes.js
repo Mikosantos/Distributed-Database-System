@@ -150,10 +150,21 @@ router.post("/config", async (req, res) => {
 });
 */
 
-router.get("/", (req, res) => {
-    res.render('index',{
-        cssFile: 'index.css'
-    });
+router.get("/", async (req, res) => {
+    const config = req.app.get('config');
+    
+    try {
+        // Check and replicate pending transactions
+        await checkAndReplicate(config);
+
+        // Render index/landing page
+        res.render('index',{
+            cssFile: 'index.css'
+        });
+    } catch (err) {
+        console.error('Error during check and replication:', err);
+        res.status(500).send('An error occurred while processing your request.');
+    }
 });
 
 router.get("/create", (req, res) => {
@@ -162,6 +173,11 @@ router.get("/create", (req, res) => {
         cssFile: 'create.css'
     });
 });
+
+// Function to check if a node is up
+function isNodeUp(node, config) {
+    return config[node];
+}
 
 router.post('/create', async (req, res) => {
     const config = req.app.get('config');
@@ -194,12 +210,10 @@ router.post('/create', async (req, res) => {
         const maxIdResult = await queryFunc("SELECT MAX(AppId) AS maxAppId FROM GAME_TABLE", [], 'READ');
         const maxAppId = maxIdResult[0]?.maxAppId || 0; // Default 0 if no entries are present
         
+        // get new AppID
         console.log("Current max AppId:", maxAppId);
-
         gameId = parseInt(maxAppId, 10) + 10;
-
         console.log("Generated AppId:", gameId);
-
         req.body.AppID = gameId; // update appId
 
         const sql_script = "INSERT INTO GAME_TABLE (AppID, Name, Release_date, Price, Estimated_owners, positive, negative) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -214,17 +228,32 @@ router.post('/create', async (req, res) => {
         const execution_time = new Date();
         const transactionQuery = logTransaction(db_selected);
 
+        const full_script = `
+            INSERT INTO GAME_TABLE (AppID, Name, Release_date, Price, Estimated_owners, positive, negative)
+            VALUES (
+                ${values[0]}, 
+                '${values[1]}', 
+                '${values[2]}', 
+                ${values[3]}, 
+                '${values[4]}', 
+                ${values[5]}, 
+                ${values[6]}
+            )
+        `;
+
+
         const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
-        const T_values = [`NODE_${db_selected + 1}`, `NODE_${db_selected + 1}`, 'INSERT', 'COMPLETE', sql_script, execution_time];
+        const T_values = [`NODE_${db_selected + 1}`, `NODE_${db_selected + 1}`, 'INSERT', 'COMPLETE', full_script, execution_time];
         const T_mode = "WRITE";
         await transactionQuery(T_sql_script, T_values, T_mode);
 
         // Data replication from NODE 1 to NODE 2 or NODE 3
         if (config[0] === true) {
             const nodeTarget = releasedDate.getFullYear() < 2010 ? 1 : 2;
-            await replicateData(db_selected, nodeTarget, sql_script, values);
+            await replicateData(db_selected, nodeTarget, sql_script, values, config);
+        // Data replication from NODE 2 or 3 to NODE 1
         } else { 
-            await replicateData(db_selected, 0, sql_script, values);
+            await replicateData(db_selected, 0, sql_script, values, config);
         }
         
         res.render('create', {
@@ -242,17 +271,55 @@ router.post('/create', async (req, res) => {
     }
 });
 
-async function replicateData(nodeSource, nodeTarget, sql_script, values) {
+async function replicateData(nodeSource, nodeTarget, sql_script, values, config) {
     const execution_time = new Date();
-    const nodeDescription = nodeTarget === 0 ? "NODE 1" : nodeTarget === 1 ? "NODE 2" : "NODE 3";
+    const nodeDescription = nodeTarget === 0 ? "NODE_1" : nodeTarget === 1 ? "NODE_2" : "NODE_3";
+
+    if (!isNodeUp(nodeTarget, config)) {
+        console.error(`DATA REPLICATION to ${nodeDescription} failed: Node is down`);
+        const transactionQuery = logTransaction(nodeSource);
+
+        const full_script = `
+            INSERT INTO GAME_TABLE (AppID, Name, Release_date, Price, Estimated_owners, positive, negative)
+            VALUES (
+                ${values[0]}, 
+                '${values[1]}', 
+                '${values[2]}', 
+                ${values[3]}, 
+                '${values[4]}', 
+                ${values[5]}, 
+                ${values[6]}
+            )
+        `;
+
+        const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+        const T_values = [`NODE_${nodeSource + 1}`, nodeDescription, 'INSERT', 'PENDING', full_script, execution_time];
+        const T_mode = "WRITE";
+
+        await transactionQuery(T_sql_script, T_values, T_mode);
+        return;
+    }
 
     console.log(`DATA REPLICATION TO ${nodeDescription}`);
 
     const queryFunc = query(nodeTarget);
     const transactionQuery = logTransaction(nodeTarget);
 
+    const full_script = `
+            INSERT INTO GAME_TABLE (AppID, Name, Release_date, Price, Estimated_owners, positive, negative)
+            VALUES (
+                ${values[0]}, 
+                '${values[1]}', 
+                '${values[2]}', 
+                ${values[3]}, 
+                '${values[4]}', 
+                ${values[5]}, 
+                ${values[6]}
+            )
+        `;
+
     const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
-    const T_values = [`NODE_${nodeSource + 1}`, nodeDescription, 'INSERT', 'COMPLETE', sql_script, execution_time];
+    const T_values = [`NODE_${nodeSource + 1}`, nodeDescription, 'INSERT', 'COMPLETE', full_script, execution_time];
     const T_mode = "WRITE";
 
     try {
@@ -262,6 +329,66 @@ async function replicateData(nodeSource, nodeTarget, sql_script, values) {
     } catch (err) {
         console.error(`Data replication to ${nodeDescription} failed:`, err);
         await transactionQuery(T_sql_script, T_values, T_mode);
+    }
+}
+
+//recovery #pls gumana ka #AMEN
+async function fetchPendingTransactions(node, config) {
+    if (!isNodeUp(node, config)) return [];
+    
+    const queryFunc = logTransaction(node);
+    try {
+        const pendingTransactions = await queryFunc("SELECT * FROM TRANSACTION_LOGS WHERE status = 'PENDING'", [], 'READ');
+        return pendingTransactions;
+    } catch (err) {
+        console.error(`Failed to fetch pending transactions from NODE ${node + 1}:`, err);
+        return [];
+    }
+}
+
+async function replicatePendingTransaction(transaction, config) {
+    const nodeTarget = transaction.node_target === 'NODE_1' ? 0 : transaction.node_target === 'NODE_2' ? 1 : 2;
+    const nodeSource = transaction.node_source === 'NODE_1' ? 0 : transaction.node_target === 'NODE_2' ? 1 : 2;
+    if (!isNodeUp(nodeTarget, config)) return;
+
+    console.log("NODE TARGET IS: " + transaction.node_target + "which is: " + nodeTarget)
+    console.log("NODE SOURCE IS: " + transaction.node_source + "which is: " + nodeSource)
+    
+    const queryFunc = query(nodeTarget);
+    
+    try {
+        console.log(transaction.query); //debugging
+        await queryFunc(transaction.query, [], 'WRITE');
+
+        console.log(`Pending transaction replicated to ${transaction.node_target}`);
+
+        await markTransactionAsComplete(transaction.log_id, nodeSource);
+        
+        const transactionQuery = logTransaction(nodeTarget);
+        const execution_time = new Date();
+        const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+        const T_values = [transaction.node_source, transaction.node_target, 'INSERT', 'COMPLETE', transaction.query, execution_time];
+        const T_mode = "WRITE";
+        await transactionQuery(T_sql_script, T_values, T_mode);
+    } catch (err) {
+        console.error(`Failed to replicate pending transaction to ${transaction.node_target}:`, err);
+    }
+}
+
+async function markTransactionAsComplete(log_id, node) {
+    const queryFunc = logTransaction(node);
+    const sql_script = "UPDATE TRANSACTION_LOGS SET status = 'COMPLETE' WHERE log_id = ?";
+    await queryFunc(sql_script, [log_id], 'WRITE');
+}
+
+async function checkAndReplicate(config) {
+    for (let i = 0; i < config.length; i++) {
+        if (isNodeUp(i, config)) {
+            const pendingTransactions = await fetchPendingTransactions(i, config);
+            for (const transaction of pendingTransactions) {
+                await replicatePendingTransaction(transaction, config);
+            }
+        }
     }
 }
 
