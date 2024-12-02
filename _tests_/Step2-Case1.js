@@ -10,8 +10,8 @@ describe('Step 2: Read-Read Concurrency Test', () => {
 
     const dbSelected1 = 0;
     const dbSelected2 = 1;
-    const ids = ['10'];
-    const titles = 'Counter-Strike';
+    const ids = ['40'];
+    const titles = 'Deathmatch Classic';
     const nodeIds = ['#node-1', '#node-2'];
     const configUrl = 'http://localhost:3000/config';
     const baseUrl = 'http://localhost:3000/';

@@ -12,7 +12,7 @@ const { query} = require('../control/dbmanager.js');
 describe('Step 2', () => {
     const db_selected = 0;
     const ids = ['130', '730'];
-    const testName1 = 'read-write test againnnn';
+    const testName1 = 'testNameB3';
 
     let queryGameBefore2010, queryGameDuringAfter2010;
     let newQueryGameBefore2010, newQueryGameDuringAfter2010;
