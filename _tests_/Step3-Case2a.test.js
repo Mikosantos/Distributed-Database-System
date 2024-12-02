@@ -5,11 +5,11 @@ const puppeteer = require('puppeteer');
 const query = require('../control/dbmanager.js').query;
 
 describe('step 3', () => {
-    const ids = ['50', '630'];
+    const ids = ['100', '570'];
     const db_selected_1 = 0;
     const db_selected_2 = 1;
     const db_selected_3 = 2;
-    const buttonId = '#btn-3'; 
+    const buttonId = '#btn-2'; 
     const width = 1280; 
     const height = 720; 
     const windowSize = '--window-size=' + width + ',' + height;
@@ -54,7 +54,7 @@ describe('step 3', () => {
         await configPage.click(buttonId); 
         await configPage.waitForNetworkIdle();
     });
-    test('STEP 3: Case 2b - firstGameDuringAfter2010Node is unavailable during the execution of a transaction and then eventually comes back online', async () => {
+    test('STEP 3: Case 2a - Node 2 is unavailable during the execution of a transaction and then eventually comes back online.', async () => {
         await new Promise(resolve => setTimeout(resolve, 4000));
 
         const centerToNode2 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", ids[0], 'READ');
@@ -84,5 +84,6 @@ describe('step 3', () => {
         const centerToiNode3_releaseYear = new Date(centerToiNode3[0]?.Release_date).getFullYear();
         expect(centerToNode2_releaseYear).toEqual(firstGameBefore2010Node_releaseYear);
         expect(centerToiNode3_releaseYear).toEqual(firstGameDuringAfter2010Node_releaseYear);
-    });
-}, 30000);
+
+        });
+}, 30000); 

@@ -1,6 +1,7 @@
 /* NEED NEW NAME EVERY RUN 
     NOTE NODE3 DUE TO DATE ASSIGNED IN CREATION OF GAME
-*/
+/*  NEW NODE INDEX EVERY TEST RUN */
+/*  NEW ID EVERY TEST RUN */
 
 jest.setTimeout(50000);
 
@@ -11,7 +12,7 @@ describe('step 3', () => {
     const db_selected_1 = 0;
     const db_selected_2 = 1;
     const db_selected_3 = 2;
-    const testName = 'center-node-down-write-test-----';
+    const testName = 'center-node-down-write-test-new-name3';
 
     const buttonId = '#btn-1'; 
     const width = 1280; 

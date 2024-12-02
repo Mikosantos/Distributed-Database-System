@@ -1,17 +1,15 @@
-jest.setTimeout(100000);
 
-// Might reccommend to chamge the ids per test run.
+jest.setTimeout(30000);
 
 const puppeteer = require('puppeteer');
-const query = require('../control/dbmanager.js').query; 
+const query = require('../control/dbmanager.js').query;
 
-describe('Step 3', () => {
+describe('step 3', () => {
     const ids = ['50', '630'];
     const db_selected_1 = 0;
     const db_selected_2 = 1;
     const db_selected_3 = 2;
-
-    const buttonId = '#btn-1'; 
+    const buttonId = '#btn-3'; 
     const width = 1280; 
     const height = 720; 
     const windowSize = '--window-size=' + width + ',' + height;
@@ -33,7 +31,6 @@ describe('Step 3', () => {
         await configPage.setViewport({ width: width, height: height }); 
         await configPage.click(buttonId); 
 
-        await new Promise(resolve => setTimeout(resolve, 4000));
         let page = await browser.pages();
         page = page[0]; 
         await page.bringToFront();
@@ -52,18 +49,17 @@ describe('Step 3', () => {
         firstGameDuringAfter2010Node = await query(db_selected_3)("SELECT * FROM GAME_TABLE WHERE AppID = ?", ids[1], 'READ');
 
         await new Promise(resolve => setTimeout(resolve, 1000));
+
         await configPage.bringToFront();
         await configPage.click(buttonId); 
         await configPage.waitForNetworkIdle();
     });
-
-    test('STEP 3: Case 1 -The central node is unavailable during the execution of a transaction and then eventually comes back online.', async () => {
+    test('STEP 3: Case 2b - Node 3 is unavailable during the execution of a transaction and then eventually comes back online', async () => {
         await new Promise(resolve => setTimeout(resolve, 4000));
 
         const centerToNode2 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", ids[0], 'READ');
         const centerToiNode3 = await query(db_selected_1)("SELECT * FROM GAME_TABLE WHERE AppID = ?", ids[1], 'READ');
-        
-        
+       
         const masterServerToNode2_gameTitle = centerToNode2[0]?.Name;
         const masterServerToNode3_gameTitle = centerToiNode3[0]?.Name;
         expect(masterServerToNode2_gameTitle).toEqual(firstGameBefore2010Node[0]?.Name);
@@ -89,4 +85,4 @@ describe('Step 3', () => {
         expect(centerToNode2_releaseYear).toEqual(firstGameBefore2010Node_releaseYear);
         expect(centerToiNode3_releaseYear).toEqual(firstGameDuringAfter2010Node_releaseYear);
     });
-}, 100000);
+}, 30000);

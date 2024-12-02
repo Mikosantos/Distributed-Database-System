@@ -1,4 +1,5 @@
 /*  NEW NODE INDEX EVERY TEST RUN */
+/*  NEW ID EVERY TEST RUN */
 jest.setTimeout(30000);
 
 const puppeteer = require('puppeteer');
@@ -8,8 +9,8 @@ describe('step 3', () => {
     const db_selected_1 = 0;
     const db_selected_2 = 1;
     const db_selected_3 = 2;
-    const id = '420';
-    const testName = 'GameBefore2010-down-write-test-';
+    const id = '1300';
+    const testName = 'GameBefore2010-down-write-test-new1';
 
     const buttonId = '#btn-2'; 
     const width = 1280; 

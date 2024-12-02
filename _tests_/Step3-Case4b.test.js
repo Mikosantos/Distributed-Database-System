@@ -1,4 +1,5 @@
-
+/*  NEW NODE INDEX EVERY TEST RUN */
+/*  NEW ID EVERY TEST RUN */
 jest.setTimeout(30000);
 
 const puppeteer = require('puppeteer');
@@ -7,8 +8,8 @@ const query = require('../control/dbmanager.js').query;
 describe('step 3', () => {
     const db_selected_1 = 0;
     const db_selected_3 = 2;
-    const ids = '630';
-    const testName = 'GameDuringAfter2010-down-write-test-----!';
+    const ids = '3200400';
+    const testName = 'node3-down-write-test-namw';
 
     const buttonId = '#btn-3'; 
     const width = 1280; 

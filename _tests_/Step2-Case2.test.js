@@ -1,7 +1,9 @@
+/* CHANGE THE testNAME PER TEST RUN!! */
+
+
 jest.setTimeout(30000);
 jest.setTimeout(30000);
 
-/* CHANGE THE testNAME per test!! */
  
 const puppeteer = require('puppeteer');
 const { query} = require('../control/dbmanager.js');
@@ -10,7 +12,7 @@ const { query} = require('../control/dbmanager.js');
 describe('Step 2', () => {
     const db_selected = 0;
     const ids = ['130', '730'];
-    const testName1 = 'read-write test againn';
+    const testName1 = 'read-write test againnnn';
 
     let queryGameBefore2010, queryGameDuringAfter2010;
     let newQueryGameBefore2010, newQueryGameDuringAfter2010;

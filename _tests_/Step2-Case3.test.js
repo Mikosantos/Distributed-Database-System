@@ -3,7 +3,7 @@ jest.setTimeout(60000);
 const puppeteer = require('puppeteer');
 const { query } = require('../control/dbmanager.js');
 
-describe('Step 2: Read-Read Concurrency Test', () => {
+describe('Step 2: Write-write Concurrency Test', () => {
     let browsers = [];
     let pages = [];
     let gameBefore2010Node0, gameBefore2010Node1;   
@@ -64,7 +64,7 @@ describe('Step 2: Read-Read Concurrency Test', () => {
     });
 
 
-    test('Case 1: Validate concurrent read operations and data integrity', async () => {
+    test('Concurrent transactions in two or more nodes are writing (update) the same data item.', async () => {
      
         const centerNodeGameBefore2010 = await query(dbSelected1)('SELECT * FROM GAME_TABLE WHERE AppID = ?',id,'READ');
 
