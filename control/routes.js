@@ -651,9 +651,27 @@ router.get("/search-game/:search_name", async (req, res) => {
 
 router.get("/report", async (req, res) => {
     try {
-        const dbSelected = 0;
+        // Construct the SQL query
+        const config = req.app.get('config'); 
         const dbMap = [db1, db2, db3];
-        const connection = dbMap[parseInt(dbSelected)];
+        
+        //console.log(config);
+        let db_selected;
+    
+        if(config[0] === true) {
+            console.log("NODE 1 is UP");
+            db_selected = 0;
+        }
+        else if (config[1] === true) { 
+            console.log("NODE 1 is DOWN");
+            db_selected = 1;
+            console.log(`Transferring master mode to NODE 2`);
+        } else if (config[2] === true) { 
+            console.log("NODE 1 and NODE 2 is DOWN");
+            db_selected = 2;
+            console.log(`Transferring master mode to NODE 3`);
+        }
+        const connection = dbMap[parseInt(db_selected)];
 
         const query_1 = `SELECT COUNT(AppID) AS pre2010Count FROM GAME_TABLE WHERE YEAR(Release_date) < 2010`;
         const query_2 = `SELECT COUNT(AppID) AS post2010Count FROM GAME_TABLE WHERE YEAR(Release_date) >= 2010`;
@@ -687,12 +705,13 @@ router.get("/report", async (req, res) => {
                 range: stat.Owner_Range,
                 count: stat.Count,
             }))
+            .filter(stat => stat.range && stat.range.includes('-'))
             .sort((a, b) => {
                 const startA = parseInt(a.range.split('-')[0], 10);
                 const startB = parseInt(b.range.split('-')[0], 10);
                 return startA - startB; 
             });
-        
+                
         const gameReports = [
             { count: pre2010Results.pre2010Count },
             { count: post2010Results.post2010Count },
