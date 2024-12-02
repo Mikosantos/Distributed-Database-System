@@ -9,7 +9,7 @@ describe('step 3', () => {
     const db_selected_1 = 0;
     const db_selected_2 = 1;
     const db_selected_3 = 2;
-    const id = '1300';
+    const id = '20200';
     const testName = 'GameBefore2010-down-write-test-new1';
 
     const buttonId = '#btn-2'; 

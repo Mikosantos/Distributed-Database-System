@@ -12,7 +12,7 @@ describe('step 3', () => {
     const db_selected_1 = 0;
     const db_selected_2 = 1;
     const db_selected_3 = 2;
-    const testName = 'center-node-down-write-test-new-name3';
+    const testName = 'center-node-down-write-test-new-name4';
 
     const buttonId = '#btn-1'; 
     const width = 1280; 
