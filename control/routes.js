@@ -340,6 +340,9 @@ async function replicateData(nodeSource, nodeTarget, sql_script, values, config)
     const queryFunc = query(nodeTarget);
     const transactionQuery = logTransaction(nodeTarget);
 
+    //additional_Log
+    const transactionQuery_Source = logTransaction(nodeSource);
+
     const full_script = `
             INSERT INTO GAME_TABLE (AppID, Name, Release_date, Price, Estimated_owners, positive, negative)
             VALUES (
@@ -361,6 +364,8 @@ async function replicateData(nodeSource, nodeTarget, sql_script, values, config)
         await queryFunc(sql_script, values, 'WRITE');
         console.log(`Data successfully replicated to ${nodeDescription} with ID: ${values[0]}\n`);
         await transactionQuery(T_sql_script, T_values, T_mode);
+
+        await transactionQuery_Source(T_sql_script, T_values, T_mode);
     } catch (err) {
         console.error(`Data replication to ${nodeDescription} failed: `, err);
         await transactionQuery(T_sql_script, T_values, T_mode);
@@ -547,11 +552,15 @@ async function replicateUpdateData(nodeSource, nodeTarget, sql_script, values, c
         await transactionQuery(T_sql_script, T_values, T_mode);
         return;
     }
-
-    console.log(`DATA REPLICATION (UPDATE) TO ${nodeDescription}`);
+    console.log("\n\\===========================================================================\\");
+    console.log(`   DATA REPLICATION (UPDATE) TO ${nodeDescription}`);
+    console.log("\\===========================================================================\\");
 
     const queryFunc = query(nodeTarget);
     const transactionQuery = logTransaction(nodeTarget);
+
+    //additional_Log
+    const transactionQuery_Source = logTransaction(nodeSource);
 
         const full_script = `
             UPDATE GAME_TABLE
@@ -571,8 +580,10 @@ async function replicateUpdateData(nodeSource, nodeTarget, sql_script, values, c
 
     try {
         await queryFunc(sql_script, values, 'WRITE');
-        console.log(`Data successfully replicated (UPDATE) to ${nodeDescription} with ID: ${values[0]}`);
+        console.log(`Data successfully replicated (UPDATE) to ${nodeDescription} with ID: ${values[6]}\n`);
         await transactionQuery(T_sql_script, T_values, T_mode);
+
+        await transactionQuery_Source(T_sql_script, T_values, T_mode);
     } catch (err) {
         console.error(`Data replication (UPDATE) to ${nodeDescription} failed:`, err);
         await transactionQuery(T_sql_script, T_values, T_mode);
@@ -702,11 +713,15 @@ async function replicateDeleteData(nodeSource, nodeTarget, sql_script, values, c
         await transactionQuery(T_sql_script, T_values, T_mode);
         return;
     }
-
-    console.log(`DATA REPLICATION (DELETE) TO ${nodeDescription}`);
+    console.log("\n\\===========================================================================\\");
+    console.log(`   DATA REPLICATION (DELETE) TO ${nodeDescription}`);
+    console.log("\\===========================================================================\\");
 
     const queryFunc = query(nodeTarget);
     const transactionQuery = logTransaction(nodeTarget);
+
+    //additional_Log
+    const transactionQuery_Source = logTransaction(nodeSource);
 
         const full_script = `
             DELETE FROM GAME_TABLE WHERE AppID = ${values[0]}
@@ -717,8 +732,10 @@ async function replicateDeleteData(nodeSource, nodeTarget, sql_script, values, c
 
     try {
         await queryFunc(sql_script, values, 'WRITE');
-        console.log(`Data successfully replicated (DELETE) to ${nodeDescription} with ID: ${values[0]}`);
+        console.log(`Data successfully replicated (DELETE) to ${nodeDescription} with ID: ${values[0]}\n`);
         await transactionQuery(T_sql_script, T_values, T_mode);
+
+        await transactionQuery_Source(T_sql_script, T_values, T_mode);
     } catch (err) {
         console.error(`Data replication (DELETE) to ${nodeDescription} failed:`, err);
         await transactionQuery(T_sql_script, T_values, T_mode);
