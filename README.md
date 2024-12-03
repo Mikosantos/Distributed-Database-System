@@ -1,4 +1,5 @@
-GROUR MEMBERS:
+GROUP 16\
+MEMBERS:
 - Clarissa Albarracin
 - Amor De Guzman
 - Reina Althea Garcia
