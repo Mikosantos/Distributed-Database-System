@@ -405,7 +405,7 @@ async function replicatePendingTransaction(transaction, config) {
         const transactionQuery = logTransaction(nodeTarget);
         const execution_time = new Date();
         const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
-        const T_values = [transaction.node_source, transaction.node_target, 'INSERT', 'COMPLETE', transaction.query, execution_time];
+        const T_values = [transaction.node_source, transaction.node_target, transaction.action, 'COMPLETE', transaction.query, execution_time];
          
         const T_mode = "WRITE";
         await transactionQuery(T_sql_script, T_values, T_mode);
@@ -589,6 +589,8 @@ router.get("/search", (req, res) => {
     });
 });
 
+// ------------------------------------------------------------------------------------------------------------ //
+// ------------------------------------------------------------------------------------------------------------ //
 router.get("/delete", (req, res) => {
     res.render('delete',{
         error: null,
@@ -596,6 +598,134 @@ router.get("/delete", (req, res) => {
     });
 })
 
+router.post("/delete/:AppID", async (req, res) => {
+    const config = req.app.get('config');
+
+    // All write operations are done only in node 0 (Master node)
+    // HOWEVER, If node 0 (master node) is down, transfer access to the slave nodes
+    // depending on the year the game was released.
+    const releasedDate = new Date(req.body.releasedDate);
+
+    let db_selected;
+    
+    if(config[0] === true) {
+        console.log("NODE 1 is UP");
+        db_selected = 0;
+    }
+    else if (config[1] === true) { 
+        console.log("NODE 1 is DOWN");
+        db_selected = 1;
+        console.log(`Transferring master mode to NODE 2`);
+    } else if (config[2] === true) { 
+        console.log("NODE 1 and NODE 2 is DOWN");
+        db_selected = 2;
+        console.log(`Transferring master mode to NODE 3`);
+    }
+
+    // console.log("Received game details:", req.body);
+    // console.log("Determined database:", db_selected);
+
+    try {
+        let queryFunc = query(db_selected);
+
+        console.log("db_selected: ", db_selected)
+        const gameId = req.body.AppID;
+        console.log("Entered AppId:", gameId);
+
+        const query_Script = `SELECT * FROM GAME_TABLE WHERE AppID = ${gameId}`;
+        const result = await queryFunc(query_Script, [], "READ");
+        // console.log(result[0].Release_date); //debugging
+
+        const releasedDate = new Date(result[0].Release_date);
+        // console.log(releasedDate.getFullYear()); //debugging
+
+        const sql_script = "DELETE FROM GAME_TABLE WHERE AppID = ?";
+        const values = [gameId];
+
+        await queryFunc(sql_script, values, 'WRITE');
+        console.log("Game with ID: " + gameId + " successfully deleted!", gameId);
+
+        // Log the transaction
+        const execution_time = new Date();
+        const transactionQuery = logTransaction(db_selected);
+
+        const full_script = `
+            DELETE FROM GAME_TABLE WHERE AppID = ${gameId}
+        `;
+
+        // console.log(full_script); // debugging
+
+        const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+        const T_values = [`NODE_${db_selected + 1}`, `NODE_${db_selected + 1}`, 'DELETE', 'COMPLETE', full_script, execution_time];
+        const T_mode = "WRITE";
+        await transactionQuery(T_sql_script, T_values, T_mode);
+
+        // Data replication from NODE 1 to NODE 2 or NODE 3
+        if (config[0] === true) {
+            const nodeTarget = releasedDate.getFullYear() < 2010 ? 1 : 2;
+            await replicateDeleteData(db_selected, nodeTarget, sql_script, values, config);
+        // Data replication from NODE 2 or 3 to NODE 1
+        } else { 
+            await replicateDeleteData(db_selected, 0, sql_script, values, config);
+        }
+
+        res.render('delete',{
+            error: null,
+            cssFile: 'delete.css'
+        });
+        
+    } catch (e) {
+        console.error('Transaction failed. Rolling back...', e);
+        res.render('delete', {
+            error: { status: 'error', message: "Server error has occurred!" },
+            db_selected: db_selected
+        });
+    }
+})
+
+async function replicateDeleteData(nodeSource, nodeTarget, sql_script, values, config) {
+    const execution_time = new Date();
+    const nodeDescription = nodeTarget === 0 ? "NODE_1" : nodeTarget === 1 ? "NODE_2" : "NODE_3";
+
+    if (!isNodeUp(nodeTarget, config)) {
+        console.error(`DATA REPLICATION (DELETE) to ${nodeDescription} failed: Node is down`);
+        const transactionQuery = logTransaction(nodeSource);
+
+        const full_script = `
+            DELETE FROM GAME_TABLE WHERE AppID = ${values[0]}
+        `;
+
+        const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+        const T_values = [`NODE_${nodeSource + 1}`, nodeDescription, 'DELETE', 'PENDING', full_script, execution_time];
+        const T_mode = "WRITE";
+
+        await transactionQuery(T_sql_script, T_values, T_mode);
+        return;
+    }
+
+    console.log(`DATA REPLICATION (DELETE) TO ${nodeDescription}`);
+
+    const queryFunc = query(nodeTarget);
+    const transactionQuery = logTransaction(nodeTarget);
+
+        const full_script = `
+            DELETE FROM GAME_TABLE WHERE AppID = ${values[0]}
+        `;
+        const T_sql_script = "INSERT INTO TRANSACTION_LOGS (node_source, node_target, action, status, query, execution_time) VALUES (?, ?, ?, ?, ?, ?)";
+        const T_values = [`NODE_${nodeSource + 1}`, nodeDescription, 'DELETE', 'COMPLETE', full_script, execution_time];
+        const T_mode = "WRITE";
+
+    try {
+        await queryFunc(sql_script, values, 'WRITE');
+        console.log(`Data successfully replicated (DELETE) to ${nodeDescription} with ID: ${values[0]}`);
+        await transactionQuery(T_sql_script, T_values, T_mode);
+    } catch (err) {
+        console.error(`Data replication (DELETE) to ${nodeDescription} failed:`, err);
+        await transactionQuery(T_sql_script, T_values, T_mode);
+    }
+}
+
+// ------------------------------------------------------------------------------------------------------------ //
 // ACTUAL-SEARCH
 router.get("/search-game/:search_name", async (req, res) => {
     const searchName = req.params.search_name;

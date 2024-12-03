@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Steam Game Management</title>
     <link rel="stylesheet" href="/styles/delete.css">
+    <!-- <script src="/js/delete.js" type="text/javascript"></script> -->
 </head>
 <body>
     <% if (error != null) {%> 
@@ -29,13 +30,27 @@
         </a>
     </div>
     <h1 class="title">Delete Game</h1>
-    <form action="/delete" method="post">
+    <form id="deleteForm" method="post">
         <h1 class="subtitle"></h1>
         <div class="appid">
             <label for="appid"><h1 class="subtitle">AppID to Delete: </h1></label>
-            <input class="inputString" name="appid" type="text">
+            <input class="inputString" name="AppID" id="appidInput" type="text">
         </div>
         <button type="submit" name="button">Delete Game</button>
     </form>
+
+    <script>
+        document.getElementById('deleteForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            var appID = document.getElementById('appidInput').value;
+            if (appID) {
+                var formAction = '/delete/' + encodeURIComponent(appID);
+                this.action = formAction;
+                this.submit(); // Submit the form with the new action
+            } else {
+                alert('Please enter an AppID to delete.');
+            }
+        });
+    </script>
 </body>
 </html>
