@@ -43,8 +43,7 @@ The aim was to build a **distributed database system** capable of managing and s
 #### **Main Outputs:**
 1. **Web Application**: Facilitates CRUD operations for managing persistent data elements using the Steam Games dataset.
 2. **Test Scripts**: Simulate various cases for:
-   - **Concurrency control**
-   - **Consistency**
+   - **Concurrency control and Consistency**
    - **Global failure and recovery**
 3. **Technical Report**: Documents:
    - Process rationale.
