@@ -26,7 +26,7 @@ npm install babel body-parser cjs dotenv ejs express jest mysql2 puppeteer puppe
 ---
 
 ### **Project Overview**
-This project is a requisite machine course output for the **Advanced Database Systems** course. It applies concepts such as:
+This project is a requisite machine course output for an advanced databases systems course. It applies concepts such as:
 - **Concurrency control**
 - **Recovery techniques**
 - **Distributed systems**
