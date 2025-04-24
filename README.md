@@ -1,11 +1,5 @@
 # Distributed Database System Project
 
-### **MEMBERS**
-- **Clarissa Albarracin**
-- **Amor De Guzman**
-- **Reina Althea Garcia**
-- **Miko Santos**
-
 ---
 
 ### **Setup Instructions**
@@ -99,6 +93,13 @@ The system is extended to handle failure scenarios and recovery cases, including
 - **Concurrency Simulation**: Demonstrates how multiple nodes handle concurrent reads and writes while ensuring consistency.
 - **Failure Handling**: Ensures the system recovers gracefully from node or communication failures.
 - **Replication**: Synchronizes data across nodes to maintain global consistency.
+
+
+### **MEMBERS**
+- **Clarissa Albarracin**
+- **Amor De Guzman**
+- **Reina Althea Garcia**
+- **Miko Santos**
 
 This project integrates database design, distributed systems theory, and practical implementation to demonstrate a fully functional distributed database system.
 ```
